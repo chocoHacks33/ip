@@ -7,7 +7,7 @@ public class Orbit {
     private static final String SEPARATOR = "____________________________________________________________";
 
     /**
-     * Greets the user, echoes commands, and exits when the user enters {@code bye}.
+     * Greets the user and stores tasks until the user enters {@code bye}.
      *
      * @param args command-line arguments; not used
      */
@@ -24,6 +24,8 @@ public class Orbit {
         System.out.println(SEPARATOR);
 
         Scanner scanner = new Scanner(System.in);
+        String[] tasks = new String[100];
+        int taskCount = 0;
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
             if (input.equals("bye")) {
@@ -31,7 +33,16 @@ public class Orbit {
                 System.out.println(SEPARATOR);
                 break;
             }
-            System.out.println(input);
+            if (input.equals("list")) {
+                System.out.println("Here are the tasks in your list:");
+                for (int i = 0; i < taskCount; i++) {
+                    System.out.println((i + 1) + ". " + tasks[i]);
+                }
+            } else {
+                tasks[taskCount] = input;
+                taskCount++;
+                System.out.println("added: " + input);
+            }
             System.out.println(SEPARATOR);
         }
     }
