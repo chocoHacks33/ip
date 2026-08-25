@@ -13,14 +13,217 @@ public class Orbit {
      * @param taskCount number of tasks currently stored
      * @param task task to add
      * @return the updated task count
+     * @throws OrbitException if the fixed-size task storage is full
      */
-    private static int addTask(Task[] tasks, int taskCount, Task task) {
+    private static int addTask(Task[] tasks, int taskCount, Task task) throws OrbitException {
+        if (taskCount >= tasks.length) {
+            throw new OrbitException("The task list is full.");
+        }
         tasks[taskCount] = task;
         int newTaskCount = taskCount + 1;
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
         System.out.println("Now you have " + newTaskCount + " tasks in the list.");
         return newTaskCount;
+    }
+
+    /**
+     * Returns whether the input contains the exact command word, optionally followed by arguments.
+     *
+     * @param input trimmed user input
+     * @param command command word to match
+     * @return true if the command word matches exactly
+     */
+    private static boolean hasCommand(String input, String command) {
+        return input.equals(command)
+                || (input.startsWith(command)
+                && input.length() > command.length()
+                && Character.isWhitespace(input.charAt(command.length())));
+    }
+
+    /**
+     * Returns the trimmed text after a command word.
+     *
+     * @param input trimmed user input
+     * @param command command word at the start of the input
+     * @return command arguments, or an empty string when there are none
+     */
+    private static String getArguments(String input, String command) {
+        return input.substring(command.length()).trim();
+    }
+
+    /**
+     * Finds one standalone marker token while rejecting duplicate occurrences.
+     *
+     * @param text text that may contain the marker
+     * @param marker marker token, including its leading slash
+     * @return the marker index, {@code -1} when absent, or {@code -2} when duplicated
+     */
+    private static int findOnlyMarker(String text, String marker) {
+        int markerIndex = -1;
+        int searchIndex = 0;
+        while (searchIndex < text.length()) {
+            int candidateIndex = text.indexOf(marker, searchIndex);
+            if (candidateIndex < 0) {
+                break;
+            }
+            int candidateEnd = candidateIndex + marker.length();
+            boolean hasLeftBoundary = candidateIndex == 0
+                    || Character.isWhitespace(text.charAt(candidateIndex - 1));
+            boolean hasRightBoundary = candidateEnd == text.length()
+                    || Character.isWhitespace(text.charAt(candidateEnd));
+            if (hasLeftBoundary && hasRightBoundary) {
+                if (markerIndex >= 0) {
+                    return -2;
+                }
+                markerIndex = candidateIndex;
+            }
+            searchIndex = candidateEnd;
+        }
+        return markerIndex;
+    }
+
+    /**
+     * Parses and validates a one-based task number.
+     *
+     * @param arguments text after a mark or unmark command
+     * @param taskCount number of stored tasks
+     * @return the corresponding zero-based task index
+     * @throws OrbitException if the argument is missing, malformed, or out of range
+     */
+    private static int parseTaskIndex(String arguments, int taskCount) throws OrbitException {
+        if (arguments.isEmpty() || arguments.split("\\s+").length != 1) {
+            throw new OrbitException("Please provide exactly one task number.");
+        }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(arguments);
+        } catch (NumberFormatException exception) {
+            throw new OrbitException("Please provide a valid task number.");
+        }
+
+        if (taskNumber < 1 || taskNumber > taskCount) {
+            throw new OrbitException("Task number " + taskNumber + " is out of range.");
+        }
+        return taskNumber - 1;
+    }
+
+    /**
+     * Parses a todo only after confirming that its description is present.
+     *
+     * @param arguments text after the todo command
+     * @return a validated todo
+     * @throws OrbitException if the description is empty
+     */
+    private static Todo parseTodo(String arguments) throws OrbitException {
+        if (arguments.isEmpty()) {
+            throw new OrbitException("The description of a todo cannot be empty.");
+        }
+        return new Todo(arguments);
+    }
+
+    /**
+     * Parses a deadline in the form {@code deadline DESCRIPTION /by DATE_OR_TIME}.
+     *
+     * @param arguments text after the deadline command
+     * @return a validated deadline
+     * @throws OrbitException if a required field or marker is missing
+     */
+    private static Deadline parseDeadline(String arguments) throws OrbitException {
+        String marker = "/by";
+        int markerIndex = findOnlyMarker(arguments, marker);
+        if (markerIndex < 0) {
+            throw new OrbitException("Use: deadline <description> /by <date or time>.");
+        }
+
+        String description = arguments.substring(0, markerIndex).trim();
+        String by = arguments.substring(markerIndex + marker.length()).trim();
+        if (description.isEmpty()) {
+            throw new OrbitException("The description of a deadline cannot be empty.");
+        }
+        if (by.isEmpty()) {
+            throw new OrbitException("The date or time of a deadline cannot be empty.");
+        }
+        return new Deadline(description, by);
+    }
+
+    /**
+     * Parses an event in the form {@code event DESCRIPTION /from START /to END}.
+     *
+     * @param arguments text after the event command
+     * @return a validated event
+     * @throws OrbitException if a required field or marker is missing
+     */
+    private static Event parseEvent(String arguments) throws OrbitException {
+        String fromMarker = "/from";
+        String toMarker = "/to";
+        int fromIndex = findOnlyMarker(arguments, fromMarker);
+        int toIndex = findOnlyMarker(arguments, toMarker);
+        boolean hasOneOrderedMarkerPair = fromIndex >= 0 && toIndex > fromIndex;
+        if (!hasOneOrderedMarkerPair) {
+            throw new OrbitException("Use: event <description> /from <start> /to <end>.");
+        }
+
+        String description = arguments.substring(0, fromIndex).trim();
+        String from = arguments.substring(fromIndex + fromMarker.length(), toIndex).trim();
+        String to = arguments.substring(toIndex + toMarker.length()).trim();
+        if (description.isEmpty()) {
+            throw new OrbitException("The description of an event cannot be empty.");
+        }
+        if (from.isEmpty()) {
+            throw new OrbitException("The start of an event cannot be empty.");
+        }
+        if (to.isEmpty()) {
+            throw new OrbitException("The end of an event cannot be empty.");
+        }
+        return new Event(description, from, to);
+    }
+
+    /**
+     * Executes one non-exit command after validating all user-controlled values.
+     *
+     * @param input trimmed user input
+     * @param tasks task storage
+     * @param taskCount number of tasks currently stored
+     * @return the updated task count
+     * @throws OrbitException if the command or any of its arguments is invalid
+     */
+    private static int handleCommand(String input, Task[] tasks, int taskCount) throws OrbitException {
+        if (input.isEmpty()) {
+            throw new OrbitException("Please enter a command.");
+        }
+        if (input.equals("list")) {
+            System.out.println("Here are the tasks in your list:");
+            for (int i = 0; i < taskCount; i++) {
+                System.out.println((i + 1) + "." + tasks[i]);
+            }
+            return taskCount;
+        }
+        if (hasCommand(input, "mark")) {
+            int taskIndex = parseTaskIndex(getArguments(input, "mark"), taskCount);
+            tasks[taskIndex].markAsDone();
+            System.out.println("Nice! I've marked this task as done:");
+            System.out.println("  " + tasks[taskIndex]);
+            return taskCount;
+        }
+        if (hasCommand(input, "unmark")) {
+            int taskIndex = parseTaskIndex(getArguments(input, "unmark"), taskCount);
+            tasks[taskIndex].markAsNotDone();
+            System.out.println("OK, I've marked this task as not done yet:");
+            System.out.println("  " + tasks[taskIndex]);
+            return taskCount;
+        }
+        if (hasCommand(input, "todo")) {
+            return addTask(tasks, taskCount, parseTodo(getArguments(input, "todo")));
+        }
+        if (hasCommand(input, "deadline")) {
+            return addTask(tasks, taskCount, parseDeadline(getArguments(input, "deadline")));
+        }
+        if (hasCommand(input, "event")) {
+            return addTask(tasks, taskCount, parseEvent(getArguments(input, "event")));
+        }
+        throw new OrbitException("I don't know that command.");
     }
 
     /**
@@ -44,46 +247,17 @@ public class Orbit {
         Task[] tasks = new Task[100];
         int taskCount = 0;
         while (scanner.hasNextLine()) {
-            String input = scanner.nextLine();
+            String input = scanner.nextLine().trim();
             if (input.equals("bye")) {
                 System.out.println("Bye. Hope to see you again soon!");
                 System.out.println(SEPARATOR);
                 break;
             }
-            if (input.equals("list")) {
-                System.out.println("Here are the tasks in your list:");
-                for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + "." + tasks[i]);
-                }
-            } else if (input.startsWith("mark ")) {
-                int taskIndex = Integer.parseInt(input.substring(5)) - 1;
-                tasks[taskIndex].markAsDone();
-                System.out.println("Nice! I've marked this task as done:");
-                System.out.println("  " + tasks[taskIndex]);
-            } else if (input.startsWith("unmark ")) {
-                int taskIndex = Integer.parseInt(input.substring(7)) - 1;
-                tasks[taskIndex].markAsNotDone();
-                System.out.println("OK, I've marked this task as not done yet:");
-                System.out.println("  " + tasks[taskIndex]);
-            } else if (input.startsWith("todo ")) {
-                String description = input.substring(5);
-                taskCount = addTask(tasks, taskCount, new Todo(description));
-            } else if (input.startsWith("deadline ")) {
-                String details = input.substring(9);
-                int byMarker = details.indexOf(" /by ");
-                String description = details.substring(0, byMarker);
-                String by = details.substring(byMarker + 5);
-                taskCount = addTask(tasks, taskCount, new Deadline(description, by));
-            } else if (input.startsWith("event ")) {
-                String details = input.substring(6);
-                int fromMarker = details.indexOf(" /from ");
-                int toMarker = details.indexOf(" /to ", fromMarker + 7);
-                String description = details.substring(0, fromMarker);
-                String from = details.substring(fromMarker + 7, toMarker);
-                String to = details.substring(toMarker + 5);
-                taskCount = addTask(tasks, taskCount, new Event(description, from, to));
-            } else {
-                System.out.println("I'm sorry, but I don't know what that means.");
+
+            try {
+                taskCount = handleCommand(input, tasks, taskCount);
+            } catch (OrbitException exception) {
+                System.out.println("OOPS! " + exception.getMessage());
             }
             System.out.println(SEPARATOR);
         }
