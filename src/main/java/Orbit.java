@@ -7,6 +7,23 @@ public class Orbit {
     private static final String SEPARATOR = "____________________________________________________________";
 
     /**
+     * Stores a task and reports the updated task count.
+     *
+     * @param tasks task storage
+     * @param taskCount number of tasks currently stored
+     * @param task task to add
+     * @return the updated task count
+     */
+    private static int addTask(Task[] tasks, int taskCount, Task task) {
+        tasks[taskCount] = task;
+        int newTaskCount = taskCount + 1;
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + task);
+        System.out.println("Now you have " + newTaskCount + " tasks in the list.");
+        return newTaskCount;
+    }
+
+    /**
      * Greets the user and stores tasks until the user enters {@code bye}.
      *
      * @param args command-line arguments; not used
@@ -48,10 +65,25 @@ public class Orbit {
                 tasks[taskIndex].markAsNotDone();
                 System.out.println("OK, I've marked this task as not done yet:");
                 System.out.println("  " + tasks[taskIndex]);
+            } else if (input.startsWith("todo ")) {
+                String description = input.substring(5);
+                taskCount = addTask(tasks, taskCount, new Todo(description));
+            } else if (input.startsWith("deadline ")) {
+                String details = input.substring(9);
+                int byMarker = details.indexOf(" /by ");
+                String description = details.substring(0, byMarker);
+                String by = details.substring(byMarker + 5);
+                taskCount = addTask(tasks, taskCount, new Deadline(description, by));
+            } else if (input.startsWith("event ")) {
+                String details = input.substring(6);
+                int fromMarker = details.indexOf(" /from ");
+                int toMarker = details.indexOf(" /to ", fromMarker + 7);
+                String description = details.substring(0, fromMarker);
+                String from = details.substring(fromMarker + 7, toMarker);
+                String to = details.substring(toMarker + 5);
+                taskCount = addTask(tasks, taskCount, new Event(description, from, to));
             } else {
-                tasks[taskCount] = new Task(input);
-                taskCount++;
-                System.out.println("added: " + input);
+                System.out.println("I'm sorry, but I don't know what that means.");
             }
             System.out.println(SEPARATOR);
         }
