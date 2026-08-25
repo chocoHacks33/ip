@@ -21,20 +21,6 @@ public class Orbit {
     }
 
     /**
-     * Returns whether the input contains the exact command word, optionally followed by arguments.
-     *
-     * @param input trimmed user input
-     * @param command command word to match
-     * @return true if the command word matches exactly
-     */
-    private static boolean hasCommand(String input, String command) {
-        return input.equals(command)
-                || (input.startsWith(command)
-                && input.length() > command.length()
-                && Character.isWhitespace(input.charAt(command.length())));
-    }
-
-    /**
      * Returns the trimmed text after a command word.
      *
      * @param input trimmed user input
@@ -43,6 +29,18 @@ public class Orbit {
      */
     private static String getArguments(String input, String command) {
         return input.substring(command.length()).trim();
+    }
+
+    /**
+     * Rejects arguments supplied to a command that does not accept any.
+     *
+     * @param arguments text after the command word
+     * @throws OrbitException if any argument was supplied
+     */
+    private static void requireNoArguments(String arguments) throws OrbitException {
+        if (!arguments.isEmpty()) {
+            throw new OrbitException("I don't know that command.");
+        }
     }
 
     /**
@@ -174,58 +172,63 @@ public class Orbit {
     }
 
     /**
-     * Executes one non-exit command after validating all user-controlled values.
+     * Executes one command after validating all user-controlled values.
      *
      * @param input trimmed user input
      * @param tasks task storage
+     * @return false only when the user enters a valid bye command
      * @throws OrbitException if the command or any of its arguments is invalid
      */
-    private static void handleCommand(String input, ArrayList<Task> tasks) throws OrbitException {
+    private static boolean handleCommand(String input, ArrayList<Task> tasks) throws OrbitException {
         if (input.isEmpty()) {
             throw new OrbitException("Please enter a command.");
         }
-        if (input.equals("list")) {
+
+        CommandType commandType = CommandType.fromInput(input);
+        String arguments = getArguments(input, commandType.getKeyword());
+        switch (commandType) {
+        case BYE:
+            requireNoArguments(arguments);
+            System.out.println("Bye. Hope to see you again soon!");
+            return false;
+        case LIST:
+            requireNoArguments(arguments);
             System.out.println("Here are the tasks in your list:");
             for (int i = 0; i < tasks.size(); i++) {
                 System.out.println((i + 1) + "." + tasks.get(i));
             }
-            return;
-        }
-        if (hasCommand(input, "mark")) {
-            int taskIndex = parseTaskIndex(getArguments(input, "mark"), tasks.size());
+            return true;
+        case MARK:
+            int taskIndex = parseTaskIndex(arguments, tasks.size());
             tasks.get(taskIndex).markAsDone();
             System.out.println("Nice! I've marked this task as done:");
             System.out.println("  " + tasks.get(taskIndex));
-            return;
-        }
-        if (hasCommand(input, "unmark")) {
-            int taskIndex = parseTaskIndex(getArguments(input, "unmark"), tasks.size());
+            return true;
+        case UNMARK:
+            taskIndex = parseTaskIndex(arguments, tasks.size());
             tasks.get(taskIndex).markAsNotDone();
             System.out.println("OK, I've marked this task as not done yet:");
             System.out.println("  " + tasks.get(taskIndex));
-            return;
-        }
-        if (hasCommand(input, "delete")) {
-            int taskIndex = parseTaskIndex(getArguments(input, "delete"), tasks.size());
+            return true;
+        case DELETE:
+            taskIndex = parseTaskIndex(arguments, tasks.size());
             Task removedTask = tasks.remove(taskIndex);
             System.out.println("Noted. I've removed this task:");
             System.out.println("  " + removedTask);
             System.out.println("Now you have " + tasks.size() + " tasks in the list.");
-            return;
+            return true;
+        case TODO:
+            addTask(tasks, parseTodo(arguments));
+            return true;
+        case DEADLINE:
+            addTask(tasks, parseDeadline(arguments));
+            return true;
+        case EVENT:
+            addTask(tasks, parseEvent(arguments));
+            return true;
+        default:
+            throw new OrbitException("I don't know that command.");
         }
-        if (hasCommand(input, "todo")) {
-            addTask(tasks, parseTodo(getArguments(input, "todo")));
-            return;
-        }
-        if (hasCommand(input, "deadline")) {
-            addTask(tasks, parseDeadline(getArguments(input, "deadline")));
-            return;
-        }
-        if (hasCommand(input, "event")) {
-            addTask(tasks, parseEvent(getArguments(input, "event")));
-            return;
-        }
-        throw new OrbitException("I don't know that command.");
     }
 
     /**
@@ -247,16 +250,11 @@ public class Orbit {
 
         Scanner scanner = new Scanner(System.in);
         ArrayList<Task> tasks = new ArrayList<>();
-        while (scanner.hasNextLine()) {
+        boolean shouldContinue = true;
+        while (shouldContinue && scanner.hasNextLine()) {
             String input = scanner.nextLine().trim();
-            if (input.equals("bye")) {
-                System.out.println("Bye. Hope to see you again soon!");
-                System.out.println(SEPARATOR);
-                break;
-            }
-
             try {
-                handleCommand(input, tasks);
+                shouldContinue = handleCommand(input, tasks);
             } catch (OrbitException exception) {
                 System.out.println("OOPS! " + exception.getMessage());
             }
