@@ -25,6 +25,7 @@ public class Orbit {
 
         Scanner scanner = new Scanner(System.in);
         String[] tasks = new String[100];
+        boolean[] taskStatuses = new boolean[100];
         int taskCount = 0;
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
@@ -36,8 +37,14 @@ public class Orbit {
             if (input.equals("list")) {
                 System.out.println("Here are the tasks in your list:");
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + ". " + tasks[i]);
+                    String statusIcon = taskStatuses[i] ? "X" : " ";
+                    System.out.println((i + 1) + ".[" + statusIcon + "] " + tasks[i]);
                 }
+            } else if (input.startsWith("mark ")) {
+                int taskIndex = Integer.parseInt(input.substring(5)) - 1;
+                taskStatuses[taskIndex] = true;
+                System.out.println("Nice! I've marked this task as done:");
+                System.out.println("  [X] " + tasks[taskIndex]);
             } else {
                 tasks[taskCount] = input;
                 taskCount++;
