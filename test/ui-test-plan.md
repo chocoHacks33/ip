@@ -199,3 +199,85 @@ bye
 1.[D][ ] do homework (by: no idea :-p)
 Bye. Hope to see you again soon!
 ```
+
+## TC7: Delete typed tasks and renumber the list
+
+Aim: Verify deleting a marked middle task preserves its displayed state and renumbers the remaining tasks.
+
+### Input
+
+```text
+todo alpha
+deadline beta /by Friday
+event gamma /from Monday /to Tuesday
+mark 2
+delete 2
+list
+delete 1
+delete 1
+list
+bye
+```
+
+### Expected output (ordered fragments)
+
+```text
+[T][ ] alpha
+[D][ ] beta (by: Friday)
+[E][ ] gamma (from: Monday to: Tuesday)
+[D][X] beta (by: Friday)
+Noted. I've removed this task:
+[D][X] beta (by: Friday)
+Now you have 2 tasks in the list.
+1.[T][ ] alpha
+2.[E][ ] gamma (from: Monday to: Tuesday)
+Noted. I've removed this task:
+[T][ ] alpha
+Now you have 1 tasks in the list.
+Noted. I've removed this task:
+[E][ ] gamma (from: Monday to: Tuesday)
+Now you have 0 tasks in the list.
+Here are the tasks in your list:
+Bye. Hope to see you again soon!
+```
+
+## TC8: Reject invalid delete commands without mutation
+
+Aim: Verify malformed and out-of-range delete commands report errors while leaving valid tasks available.
+
+### Input
+
+```text
+delete
+delete abc
+delete 1
+todo only task
+delete 0
+delete 2
+delete 1 2
+delete 999999999999999999999999
+list
+delete 1
+delete 1
+bye
+```
+
+### Expected output (ordered fragments)
+
+```text
+OOPS! Please provide exactly one task number.
+OOPS! Please provide a valid task number.
+OOPS! Task number 1 is out of range.
+[T][ ] only task
+Now you have 1 tasks in the list.
+OOPS! Task number 0 is out of range.
+OOPS! Task number 2 is out of range.
+OOPS! Please provide exactly one task number.
+OOPS! Please provide a valid task number.
+1.[T][ ] only task
+Noted. I've removed this task:
+[T][ ] only task
+Now you have 0 tasks in the list.
+OOPS! Task number 1 is out of range.
+Bye. Hope to see you again soon!
+```
