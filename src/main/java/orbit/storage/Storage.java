@@ -93,18 +93,18 @@ public class Storage {
             boolean isDone = parseStatus(fields);
             String description = decode(fields[2]);
             switch (fields[0]) {
-            case "T":
-                requireFieldCount(fields, 3);
-                return new Todo(description, isDone);
-            case "D":
-                requireFieldCount(fields, 4);
-                return new Deadline(description, LocalDate.parse(decode(fields[3])), isDone);
-            case "E":
-                requireFieldCount(fields, 5);
-                return new Event(description, LocalDate.parse(decode(fields[3])),
-                        LocalDate.parse(decode(fields[4])), isDone);
-            default:
-                throw new IllegalArgumentException("Unknown task type");
+                case "T":
+                    requireFieldCount(fields, 3);
+                    return new Todo(description, isDone);
+                case "D":
+                    requireFieldCount(fields, 4);
+                    return new Deadline(description, LocalDate.parse(decode(fields[3])), isDone);
+                case "E":
+                    requireFieldCount(fields, 5);
+                    return new Event(description, LocalDate.parse(decode(fields[3])),
+                            LocalDate.parse(decode(fields[4])), isDone);
+                default:
+                    throw new IllegalArgumentException("Unknown task type");
             }
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException
                 | DateTimeParseException exception) {

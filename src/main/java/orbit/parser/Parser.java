@@ -28,22 +28,25 @@ public class Parser {
         CommandType type = CommandType.fromInput(input);
         String arguments = input.substring(type.getKeyword().length()).trim();
         switch (type) {
-        case BYE:
-        case LIST:
-            requireNoArguments(arguments);
-            return ParsedCommand.withoutArguments(type);
-        case MARK:
-        case UNMARK:
-        case DELETE:
-            return ParsedCommand.withTaskNumber(type, parseTaskNumber(arguments));
-        case TODO:
-            return ParsedCommand.withTask(type, parseTodo(arguments));
-        case DEADLINE:
-            return ParsedCommand.withTask(type, parseDeadline(arguments));
-        case EVENT:
-            return ParsedCommand.withTask(type, parseEvent(arguments));
-        default:
-            throw new OrbitException("I don't know that command.");
+            case BYE:
+                // Fallthrough
+            case LIST:
+                requireNoArguments(arguments);
+                return ParsedCommand.withoutArguments(type);
+            case MARK:
+                // Fallthrough
+            case UNMARK:
+                // Fallthrough
+            case DELETE:
+                return ParsedCommand.withTaskNumber(type, parseTaskNumber(arguments));
+            case TODO:
+                return ParsedCommand.withTask(type, parseTodo(arguments));
+            case DEADLINE:
+                return ParsedCommand.withTask(type, parseDeadline(arguments));
+            case EVENT:
+                return ParsedCommand.withTask(type, parseEvent(arguments));
+            default:
+                throw new OrbitException("I don't know that command.");
         }
     }
 
