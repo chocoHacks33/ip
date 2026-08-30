@@ -48,9 +48,18 @@ public class Parser {
             return ParsedCommand.withTask(type, parseDeadline(arguments));
         case EVENT:
             return ParsedCommand.withTask(type, parseEvent(arguments));
+        case FIND:
+            return ParsedCommand.withKeyword(type, parseKeyword(arguments));
         default:
             throw new OrbitException("I don't know that command.");
         }
+    }
+
+    private String parseKeyword(String arguments) throws OrbitException {
+        if (arguments.isEmpty()) {
+            throw new OrbitException("The keyword for a find command cannot be empty.");
+        }
+        return arguments;
     }
 
     private void requireNoArguments(String arguments) throws OrbitException {

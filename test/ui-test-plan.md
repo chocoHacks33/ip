@@ -343,3 +343,43 @@ Bye. Hope to see you again soon!
 2.[E][ ] saved event (from: Sep 1 2026 to: Sep 2 2026)
 Bye. Hope to see you again soon!
 ```
+
+## TC10: Find tasks by description without mutation
+
+Aim: Verify find supports keywords and phrases, preserves match order, renumbers results, and leaves the full list unchanged.
+
+### Input
+
+```text
+todo read book
+deadline return book /by 2026-09-06
+event book club /from 2026-09-07 /to 2026-09-08
+todo read notes
+find book
+find read book
+find missing
+find
+finder book
+list
+bye
+```
+
+### Expected output (ordered fragments)
+
+```text
+Here are the matching tasks in your list:
+1.[T][ ] read book
+2.[D][ ] return book (by: Sep 6 2026)
+3.[E][ ] book club (from: Sep 7 2026 to: Sep 8 2026)
+Here are the matching tasks in your list:
+1.[T][ ] read book
+Here are the matching tasks in your list:
+OOPS! The keyword for a find command cannot be empty.
+OOPS! I don't know that command.
+Here are the tasks in your list:
+1.[T][ ] read book
+2.[D][ ] return book (by: Sep 6 2026)
+3.[E][ ] book club (from: Sep 7 2026 to: Sep 8 2026)
+4.[T][ ] read notes
+Bye. Hope to see you again soon!
+```

@@ -27,6 +27,9 @@ public enum CommandType {
     /** Adds a task spanning two dates. */
     EVENT("event"),
 
+    /** Finds tasks whose descriptions contain a keyword. */
+    FIND("find"),
+
     /** Removes one stored task. */
     DELETE("delete");
 

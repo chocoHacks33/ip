@@ -53,4 +53,29 @@ class ParserTest {
         assertEquals("Use: deadline <description> /by <yyyy-MM-dd>.",
                 exception.getMessage());
     }
+
+    @Test
+    void parse_findPhrase_returnsCompleteKeyword() throws OrbitException {
+        ParsedCommand command = parser.parse("find project meeting");
+
+        assertEquals(CommandType.FIND, command.getType());
+        assertEquals("project meeting", command.getKeyword());
+    }
+
+    @Test
+    void parse_findWithoutKeyword_throwsHelpfulError() {
+        OrbitException exception = assertThrows(OrbitException.class,
+                () -> parser.parse("find"));
+
+        assertEquals("The keyword for a find command cannot be empty.",
+                exception.getMessage());
+    }
+
+    @Test
+    void parse_findNearMiss_rejectsUnknownCommand() {
+        OrbitException exception = assertThrows(OrbitException.class,
+                () -> parser.parse("finder book"));
+
+        assertEquals("I don't know that command.", exception.getMessage());
+    }
 }
