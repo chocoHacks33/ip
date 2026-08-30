@@ -57,6 +57,11 @@ public class Event extends Task {
         return to;
     }
 
+    /**
+     * Formats this event using Orbit's user-facing date format.
+     *
+     * @return event marker, completion status, description, and date range
+     */
     @Override
     public String toString() {
         return "[E]" + super.toString() + " (from: " + from.format(DISPLAY_FORMAT)

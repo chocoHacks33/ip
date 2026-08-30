@@ -4,7 +4,10 @@ package orbit.task;
  * Represents a task with a description and completion status.
  */
 public class Task {
+    /** Description shown to the user. */
     protected String description;
+
+    /** Whether this task is completed. */
     protected boolean isDone;
 
     /**
@@ -68,6 +71,11 @@ public class Task {
         return isDone ? "X" : " ";
     }
 
+    /**
+     * Formats the completion status and description shared by all task types.
+     *
+     * @return status icon followed by the task description
+     */
     @Override
     public String toString() {
         return "[" + getStatusIcon() + "] " + description;

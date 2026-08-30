@@ -6,13 +6,28 @@ import orbit.exception.OrbitException;
  * Identifies the commands understood by Orbit.
  */
 public enum CommandType {
+    /** Ends the current Orbit session. */
     BYE("bye"),
+
+    /** Displays every stored task. */
     LIST("list"),
+
+    /** Marks one task as completed. */
     MARK("mark"),
+
+    /** Marks one task as not completed. */
     UNMARK("unmark"),
+
+    /** Adds a task without a date. */
     TODO("todo"),
+
+    /** Adds a task with a due date. */
     DEADLINE("deadline"),
+
+    /** Adds a task spanning two dates. */
     EVENT("event"),
+
+    /** Removes one stored task. */
     DELETE("delete");
 
     private final String keyword;
