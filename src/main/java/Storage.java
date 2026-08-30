@@ -3,6 +3,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -88,10 +89,11 @@ public class Storage {
                 return new Todo(description, isDone);
             case "D":
                 requireFieldCount(fields, 4);
-                return new Deadline(description, decode(fields[3]), isDone);
+                return new Deadline(description, LocalDate.parse(decode(fields[3])), isDone);
             case "E":
                 requireFieldCount(fields, 5);
-                return new Event(description, decode(fields[3]), decode(fields[4]), isDone);
+                return new Event(description, LocalDate.parse(decode(fields[3])),
+                        LocalDate.parse(decode(fields[4])), isDone);
             default:
                 throw new IllegalArgumentException("Unknown task type");
             }
@@ -120,11 +122,11 @@ public class Storage {
             return "T" + FIELD_SEPARATOR + commonFields;
         }
         if (task instanceof Deadline deadline) {
-            return "D" + FIELD_SEPARATOR + commonFields + FIELD_SEPARATOR + encode(deadline.getBy());
+            return "D" + FIELD_SEPARATOR + commonFields + FIELD_SEPARATOR + encode(deadline.getBy().toString());
         }
         if (task instanceof Event event) {
             return "E" + FIELD_SEPARATOR + commonFields + FIELD_SEPARATOR
-                    + encode(event.getFrom()) + FIELD_SEPARATOR + encode(event.getTo());
+                    + encode(event.getFrom().toString()) + FIELD_SEPARATOR + encode(event.getTo().toString());
         }
         throw new OrbitException("Could not save an unsupported task type.");
     }

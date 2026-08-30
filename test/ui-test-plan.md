@@ -1,17 +1,17 @@
 # Orbit UI Test Plan
 
-Run each case as an independent Orbit session. Expected lines are matched as ordered fragments so optional banners, separators, and indentation can change without making the tests brittle.
+Run each case in a clean folder. Restart inputs within a case reuse that folder. Expected lines are matched as ordered fragments so optional banners, separators, and indentation can change without making the tests brittle.
 
 ## TC1: Add and list every task type
 
-Aim: Verify todos, deadlines, and events retain their type markers and raw date/time text.
+Aim: Verify every task type retains its marker and displays stored dates in a friendly format.
 
 ### Input
 
 ```text
 todo borrow book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+deadline return book /by 2026-09-06
+event project meeting /from 2026-09-07 /to 2026-09-08
 list
 bye
 ```
@@ -21,14 +21,14 @@ bye
 ```text
 [T][ ] borrow book
 Now you have 1 tasks in the list.
-[D][ ] return book (by: Sunday)
+[D][ ] return book (by: Sep 6 2026)
 Now you have 2 tasks in the list.
-[E][ ] project meeting (from: Mon 2pm to: 4pm)
+[E][ ] project meeting (from: Sep 7 2026 to: Sep 8 2026)
 Now you have 3 tasks in the list.
 Here are the tasks in your list:
 1.[T][ ] borrow book
-2.[D][ ] return book (by: Sunday)
-3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+2.[D][ ] return book (by: Sep 6 2026)
+3.[E][ ] project meeting (from: Sep 7 2026 to: Sep 8 2026)
 Bye. Hope to see you again soon!
 ```
 
@@ -73,16 +73,16 @@ Aim: Verify missing descriptions, markers, dates, and times are handled without 
 todo
 deadline
 deadline write report
-deadline /by Sunday
+deadline /by 2026-09-06
 deadline write report /by
-deadline write report /by Sunday /by Monday
+deadline write report /by 2026-09-06 /by 2026-09-07
 event
-event meeting /from Monday
-event meeting /to Tuesday
-event meeting /to Tuesday /from Monday
-event /from Monday /to Tuesday
-event meeting /from /to Tuesday
-event meeting /from Monday /to
+event meeting /from 2026-09-07
+event meeting /to 2026-09-08
+event meeting /to 2026-09-08 /from 2026-09-07
+event /from 2026-09-07 /to 2026-09-08
+event meeting /from /to 2026-09-08
+event meeting /from 2026-09-07 /to
 todo valid task
 list
 bye
@@ -92,15 +92,15 @@ bye
 
 ```text
 OOPS! The description of a todo cannot be empty.
-OOPS! Use: deadline <description> /by <date or time>.
-OOPS! Use: deadline <description> /by <date or time>.
+OOPS! Use: deadline <description> /by <yyyy-MM-dd>.
+OOPS! Use: deadline <description> /by <yyyy-MM-dd>.
 OOPS! The description of a deadline cannot be empty.
-OOPS! The date or time of a deadline cannot be empty.
-OOPS! Use: deadline <description> /by <date or time>.
-OOPS! Use: event <description> /from <start> /to <end>.
-OOPS! Use: event <description> /from <start> /to <end>.
-OOPS! Use: event <description> /from <start> /to <end>.
-OOPS! Use: event <description> /from <start> /to <end>.
+OOPS! The date of a deadline cannot be empty.
+OOPS! Use: deadline <description> /by <yyyy-MM-dd>.
+OOPS! Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.
+OOPS! Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.
+OOPS! Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.
+OOPS! Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.
 OOPS! The description of an event cannot be empty.
 OOPS! The start of an event cannot be empty.
 OOPS! The end of an event cannot be empty.
@@ -118,7 +118,7 @@ Aim: Verify invalid mark and unmark commands do not mutate tasks and valid comma
 
 ```text
 todo alpha
-deadline beta /by Friday
+deadline beta /by 2026-09-04
 mark 2
 mark
 mark abc
@@ -126,7 +126,7 @@ mark 1 2
 mark 0
 unmark 3
 deadline broken
-event broken /from Monday
+event broken /from 2026-09-07
 list
 unmark 2
 list
@@ -138,21 +138,21 @@ bye
 ```text
 [T][ ] alpha
 Now you have 1 tasks in the list.
-[D][ ] beta (by: Friday)
+[D][ ] beta (by: Sep 4 2026)
 Now you have 2 tasks in the list.
-[D][X] beta (by: Friday)
+[D][X] beta (by: Sep 4 2026)
 OOPS! Please provide exactly one task number.
 OOPS! Please provide a valid task number.
 OOPS! Please provide exactly one task number.
 OOPS! Task number 0 is out of range.
 OOPS! Task number 3 is out of range.
-OOPS! Use: deadline <description> /by <date or time>.
-OOPS! Use: event <description> /from <start> /to <end>.
+OOPS! Use: deadline <description> /by <yyyy-MM-dd>.
+OOPS! Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.
 1.[T][ ] alpha
-2.[D][X] beta (by: Friday)
-[D][ ] beta (by: Friday)
+2.[D][X] beta (by: Sep 4 2026)
+[D][ ] beta (by: Sep 4 2026)
 1.[T][ ] alpha
-2.[D][ ] beta (by: Friday)
+2.[D][ ] beta (by: Sep 4 2026)
 Bye. Hope to see you again soon!
 ```
 
@@ -180,14 +180,19 @@ bye
 Bye. Hope to see you again soon!
 ```
 
-## TC6: Preserve arbitrary deadline text
+## TC6: Parse real dates and reject invalid dates
 
-Aim: Verify Week 2 treats date and time values as strings rather than parsing them.
+Aim: Verify ISO dates become calendar values while malformed and impossible dates are rejected.
 
 ### Input
 
 ```text
 deadline do homework /by no idea :-p
+deadline impossible /by 2026-02-29
+event invalid start /from Monday /to 2026-09-02
+event invalid end /from 2026-09-01 /to Tuesday
+deadline leap day /by 2028-02-29
+event release /from 2026-09-01 /to 2026-09-02
 list
 bye
 ```
@@ -195,8 +200,14 @@ bye
 ### Expected output (ordered fragments)
 
 ```text
-[D][ ] do homework (by: no idea :-p)
-1.[D][ ] do homework (by: no idea :-p)
+OOPS! Please enter dates as yyyy-MM-dd.
+OOPS! Please enter dates as yyyy-MM-dd.
+OOPS! Please enter dates as yyyy-MM-dd.
+OOPS! Please enter dates as yyyy-MM-dd.
+[D][ ] leap day (by: Feb 29 2028)
+[E][ ] release (from: Sep 1 2026 to: Sep 2 2026)
+1.[D][ ] leap day (by: Feb 29 2028)
+2.[E][ ] release (from: Sep 1 2026 to: Sep 2 2026)
 Bye. Hope to see you again soon!
 ```
 
@@ -208,8 +219,8 @@ Aim: Verify deleting a marked middle task preserves its displayed state and renu
 
 ```text
 todo alpha
-deadline beta /by Friday
-event gamma /from Monday /to Tuesday
+deadline beta /by 2026-09-04
+event gamma /from 2026-09-07 /to 2026-09-08
 mark 2
 delete 2
 list
@@ -223,19 +234,19 @@ bye
 
 ```text
 [T][ ] alpha
-[D][ ] beta (by: Friday)
-[E][ ] gamma (from: Monday to: Tuesday)
-[D][X] beta (by: Friday)
+[D][ ] beta (by: Sep 4 2026)
+[E][ ] gamma (from: Sep 7 2026 to: Sep 8 2026)
+[D][X] beta (by: Sep 4 2026)
 Noted. I've removed this task:
-[D][X] beta (by: Friday)
+[D][X] beta (by: Sep 4 2026)
 Now you have 2 tasks in the list.
 1.[T][ ] alpha
-2.[E][ ] gamma (from: Monday to: Tuesday)
+2.[E][ ] gamma (from: Sep 7 2026 to: Sep 8 2026)
 Noted. I've removed this task:
 [T][ ] alpha
 Now you have 1 tasks in the list.
 Noted. I've removed this task:
-[E][ ] gamma (from: Monday to: Tuesday)
+[E][ ] gamma (from: Sep 7 2026 to: Sep 8 2026)
 Now you have 0 tasks in the list.
 Here are the tasks in your list:
 Bye. Hope to see you again soon!
@@ -290,8 +301,8 @@ Aim: Verify tasks, punctuation, order, and completion status survive restarts, i
 
 ```text
 todo save | punctuation
-deadline saved deadline /by Friday
-event saved event /from Monday /to Tuesday
+deadline saved deadline /by 2026-09-04
+event saved event /from 2026-09-01 /to 2026-09-02
 mark 2
 bye
 ```
@@ -316,19 +327,19 @@ bye
 
 ```text
 [T][ ] save | punctuation
-[D][ ] saved deadline (by: Friday)
-[E][ ] saved event (from: Monday to: Tuesday)
-[D][X] saved deadline (by: Friday)
+[D][ ] saved deadline (by: Sep 4 2026)
+[E][ ] saved event (from: Sep 1 2026 to: Sep 2 2026)
+[D][X] saved deadline (by: Sep 4 2026)
 Bye. Hope to see you again soon!
 1.[T][ ] save | punctuation
-2.[D][X] saved deadline (by: Friday)
-3.[E][ ] saved event (from: Monday to: Tuesday)
-[D][ ] saved deadline (by: Friday)
+2.[D][X] saved deadline (by: Sep 4 2026)
+3.[E][ ] saved event (from: Sep 1 2026 to: Sep 2 2026)
+[D][ ] saved deadline (by: Sep 4 2026)
 Noted. I've removed this task:
 [T][ ] save | punctuation
 Now you have 2 tasks in the list.
 Bye. Hope to see you again soon!
-1.[D][ ] saved deadline (by: Friday)
-2.[E][ ] saved event (from: Monday to: Tuesday)
+1.[D][ ] saved deadline (by: Sep 4 2026)
+2.[E][ ] saved event (from: Sep 1 2026 to: Sep 2 2026)
 Bye. Hope to see you again soon!
 ```
