@@ -1,324 +1,146 @@
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
- * Entry point for Orbit, a friendly command-line task assistant.
+ * Coordinates Orbit's parser, task list, storage, and console UI.
  */
 public class Orbit {
-    private static final String SEPARATOR = "____________________________________________________________";
+    private final Ui ui;
+    private final Storage storage;
+    private final Parser parser;
+    private final TaskList tasks;
 
     /**
-     * Stores a task and reports the updated task count.
+     * Creates an Orbit application from its collaborating components.
      *
-     * @param tasks task storage
-     * @param task task to add
+     * @param ui console user interface
      * @param storage persistent task storage
-     * @throws OrbitException if the updated task list cannot be saved
+     * @param parser command parser
+     * @param tasks current task list
      */
-    private static void addTask(ArrayList<Task> tasks, Task task, Storage storage) throws OrbitException {
-        tasks.add(task);
-        try {
-            storage.save(tasks);
-        } catch (OrbitException exception) {
-            tasks.remove(tasks.size() - 1);
-            throw exception;
-        }
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+    public Orbit(Ui ui, Storage storage, Parser parser, TaskList tasks) {
+        this.ui = ui;
+        this.storage = storage;
+        this.parser = parser;
+        this.tasks = tasks;
     }
 
     /**
-     * Returns the trimmed text after a command word.
-     *
-     * @param input trimmed user input
-     * @param command command word at the start of the input
-     * @return command arguments, or an empty string when there are none
+     * Processes commands until the user exits or closes the input stream.
      */
-    private static String getArguments(String input, String command) {
-        return input.substring(command.length()).trim();
-    }
-
-    /**
-     * Rejects arguments supplied to a command that does not accept any.
-     *
-     * @param arguments text after the command word
-     * @throws OrbitException if any argument was supplied
-     */
-    private static void requireNoArguments(String arguments) throws OrbitException {
-        if (!arguments.isEmpty()) {
-            throw new OrbitException("I don't know that command.");
-        }
-    }
-
-    /**
-     * Finds one standalone marker token while rejecting duplicate occurrences.
-     *
-     * @param text text that may contain the marker
-     * @param marker marker token, including its leading slash
-     * @return the marker index, {@code -1} when absent, or {@code -2} when duplicated
-     */
-    private static int findOnlyMarker(String text, String marker) {
-        int markerIndex = -1;
-        int searchIndex = 0;
-        while (searchIndex < text.length()) {
-            int candidateIndex = text.indexOf(marker, searchIndex);
-            if (candidateIndex < 0) {
-                break;
+    public void run() {
+        boolean shouldContinue = true;
+        while (shouldContinue && ui.hasNextCommand()) {
+            try {
+                ParsedCommand command = parser.parse(ui.readCommand());
+                shouldContinue = execute(command);
+            } catch (OrbitException exception) {
+                ui.showError(exception.getMessage());
             }
-            int candidateEnd = candidateIndex + marker.length();
-            boolean hasLeftBoundary = candidateIndex == 0
-                    || Character.isWhitespace(text.charAt(candidateIndex - 1));
-            boolean hasRightBoundary = candidateEnd == text.length()
-                    || Character.isWhitespace(text.charAt(candidateEnd));
-            if (hasLeftBoundary && hasRightBoundary) {
-                if (markerIndex >= 0) {
-                    return -2;
-                }
-                markerIndex = candidateIndex;
-            }
-            searchIndex = candidateEnd;
-        }
-        return markerIndex;
-    }
-
-    /**
-     * Parses a calendar date in Orbit's documented input format.
-     *
-     * @param value date text in yyyy-MM-dd format
-     * @return parsed calendar date
-     * @throws OrbitException if the value is not a real date in the required format
-     */
-    private static LocalDate parseDate(String value) throws OrbitException {
-        try {
-            return LocalDate.parse(value);
-        } catch (DateTimeParseException exception) {
-            throw new OrbitException("Please enter dates as yyyy-MM-dd.");
+            ui.showSeparator();
         }
     }
 
-    /**
-     * Parses and validates a one-based task number.
-     *
-     * @param arguments text after a mark, unmark, or delete command
-     * @param taskCount number of stored tasks
-     * @return the corresponding zero-based task index
-     * @throws OrbitException if the argument is missing, malformed, or out of range
-     */
-    private static int parseTaskIndex(String arguments, int taskCount) throws OrbitException {
-        if (arguments.isEmpty() || arguments.split("\\s+").length != 1) {
-            throw new OrbitException("Please provide exactly one task number.");
-        }
-
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(arguments);
-        } catch (NumberFormatException exception) {
-            throw new OrbitException("Please provide a valid task number.");
-        }
-
-        if (taskNumber < 1 || taskNumber > taskCount) {
-            throw new OrbitException("Task number " + taskNumber + " is out of range.");
-        }
-        return taskNumber - 1;
-    }
-
-    /**
-     * Parses a todo only after confirming that its description is present.
-     *
-     * @param arguments text after the todo command
-     * @return a validated todo
-     * @throws OrbitException if the description is empty
-     */
-    private static Todo parseTodo(String arguments) throws OrbitException {
-        if (arguments.isEmpty()) {
-            throw new OrbitException("The description of a todo cannot be empty.");
-        }
-        return new Todo(arguments);
-    }
-
-    /**
-     * Parses a deadline in the form {@code deadline DESCRIPTION /by yyyy-MM-dd}.
-     *
-     * @param arguments text after the deadline command
-     * @return a validated deadline
-     * @throws OrbitException if a required field or marker is missing
-     */
-    private static Deadline parseDeadline(String arguments) throws OrbitException {
-        String marker = "/by";
-        int markerIndex = findOnlyMarker(arguments, marker);
-        if (markerIndex < 0) {
-            throw new OrbitException("Use: deadline <description> /by <yyyy-MM-dd>.");
-        }
-
-        String description = arguments.substring(0, markerIndex).trim();
-        String byText = arguments.substring(markerIndex + marker.length()).trim();
-        if (description.isEmpty()) {
-            throw new OrbitException("The description of a deadline cannot be empty.");
-        }
-        if (byText.isEmpty()) {
-            throw new OrbitException("The date of a deadline cannot be empty.");
-        }
-        return new Deadline(description, parseDate(byText));
-    }
-
-    /**
-     * Parses an event in the form {@code event DESCRIPTION /from yyyy-MM-dd /to yyyy-MM-dd}.
-     *
-     * @param arguments text after the event command
-     * @return a validated event
-     * @throws OrbitException if a required field or marker is missing
-     */
-    private static Event parseEvent(String arguments) throws OrbitException {
-        String fromMarker = "/from";
-        String toMarker = "/to";
-        int fromIndex = findOnlyMarker(arguments, fromMarker);
-        int toIndex = findOnlyMarker(arguments, toMarker);
-        boolean hasOneOrderedMarkerPair = fromIndex >= 0 && toIndex > fromIndex;
-        if (!hasOneOrderedMarkerPair) {
-            throw new OrbitException("Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.");
-        }
-
-        String description = arguments.substring(0, fromIndex).trim();
-        String fromText = arguments.substring(fromIndex + fromMarker.length(), toIndex).trim();
-        String toText = arguments.substring(toIndex + toMarker.length()).trim();
-        if (description.isEmpty()) {
-            throw new OrbitException("The description of an event cannot be empty.");
-        }
-        if (fromText.isEmpty()) {
-            throw new OrbitException("The start of an event cannot be empty.");
-        }
-        if (toText.isEmpty()) {
-            throw new OrbitException("The end of an event cannot be empty.");
-        }
-        return new Event(description, parseDate(fromText), parseDate(toText));
-    }
-
-    /**
-     * Executes one command after validating all user-controlled values.
-     *
-     * @param input trimmed user input
-     * @param tasks task storage
-     * @param storage persistent task storage
-     * @return false only when the user enters a valid bye command
-     * @throws OrbitException if the command or any of its arguments is invalid
-     */
-    private static boolean handleCommand(String input, ArrayList<Task> tasks, Storage storage) throws OrbitException {
-        if (input.isEmpty()) {
-            throw new OrbitException("Please enter a command.");
-        }
-
-        CommandType commandType = CommandType.fromInput(input);
-        String arguments = getArguments(input, commandType.getKeyword());
-        switch (commandType) {
+    private boolean execute(ParsedCommand command) throws OrbitException {
+        switch (command.getType()) {
         case BYE:
-            requireNoArguments(arguments);
-            System.out.println("Bye. Hope to see you again soon!");
+            ui.showGoodbye();
             return false;
         case LIST:
-            requireNoArguments(arguments);
-            System.out.println("Here are the tasks in your list:");
-            for (int i = 0; i < tasks.size(); i++) {
-                System.out.println((i + 1) + "." + tasks.get(i));
-            }
+            ui.showTaskList(tasks.asList());
             return true;
         case MARK:
-            int taskIndex = parseTaskIndex(arguments, tasks.size());
-            Task task = tasks.get(taskIndex);
-            boolean wasDone = task.isDone();
-            task.markAsDone();
-            try {
-                storage.save(tasks);
-            } catch (OrbitException exception) {
-                if (!wasDone) {
-                    task.markAsNotDone();
-                }
-                throw exception;
-            }
-            System.out.println("Nice! I've marked this task as done:");
-            System.out.println("  " + task);
+            markTask(command.getTaskNumber());
             return true;
         case UNMARK:
-            taskIndex = parseTaskIndex(arguments, tasks.size());
-            task = tasks.get(taskIndex);
-            wasDone = task.isDone();
-            task.markAsNotDone();
-            try {
-                storage.save(tasks);
-            } catch (OrbitException exception) {
-                if (wasDone) {
-                    task.markAsDone();
-                }
-                throw exception;
-            }
-            System.out.println("OK, I've marked this task as not done yet:");
-            System.out.println("  " + task);
+            unmarkTask(command.getTaskNumber());
             return true;
         case DELETE:
-            taskIndex = parseTaskIndex(arguments, tasks.size());
-            Task removedTask = tasks.remove(taskIndex);
-            try {
-                storage.save(tasks);
-            } catch (OrbitException exception) {
-                tasks.add(taskIndex, removedTask);
-                throw exception;
-            }
-            System.out.println("Noted. I've removed this task:");
-            System.out.println("  " + removedTask);
-            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+            deleteTask(command.getTaskNumber());
             return true;
         case TODO:
-            addTask(tasks, parseTodo(arguments), storage);
-            return true;
         case DEADLINE:
-            addTask(tasks, parseDeadline(arguments), storage);
-            return true;
         case EVENT:
-            addTask(tasks, parseEvent(arguments), storage);
+            addTask(command.getTask());
             return true;
         default:
             throw new OrbitException("I don't know that command.");
         }
     }
 
+    private void addTask(Task task) throws OrbitException {
+        tasks.add(task);
+        try {
+            saveTasks();
+        } catch (OrbitException exception) {
+            tasks.delete(tasks.size());
+            throw exception;
+        }
+        ui.showAddedTask(task, tasks.size());
+    }
+
+    private void markTask(int taskNumber) throws OrbitException {
+        Task task = tasks.get(taskNumber);
+        boolean wasDone = task.isDone();
+        task.markAsDone();
+        try {
+            saveTasks();
+        } catch (OrbitException exception) {
+            if (!wasDone) {
+                task.markAsNotDone();
+            }
+            throw exception;
+        }
+        ui.showMarkedTask(task);
+    }
+
+    private void unmarkTask(int taskNumber) throws OrbitException {
+        Task task = tasks.get(taskNumber);
+        boolean wasDone = task.isDone();
+        task.markAsNotDone();
+        try {
+            saveTasks();
+        } catch (OrbitException exception) {
+            if (wasDone) {
+                task.markAsDone();
+            }
+            throw exception;
+        }
+        ui.showUnmarkedTask(task);
+    }
+
+    private void deleteTask(int taskNumber) throws OrbitException {
+        Task removedTask = tasks.delete(taskNumber);
+        try {
+            saveTasks();
+        } catch (OrbitException exception) {
+            tasks.restore(taskNumber, removedTask);
+            throw exception;
+        }
+        ui.showDeletedTask(removedTask, tasks.size());
+    }
+
+    private void saveTasks() throws OrbitException {
+        storage.save(tasks.asList());
+    }
+
     /**
-     * Greets the user and stores tasks until the user enters {@code bye}.
+     * Starts Orbit with its default relative data file.
      *
      * @param args command-line arguments; not used
      */
     public static void main(String[] args) {
-        String banner = "  ___       _     _ _   \n"
-                + " / _ \\ _ __| |__ (_) |_ \n"
-                + "| | | | '__| '_ \\| | __|\n"
-                + "| |_| | |  | |_) | | |_ \n"
-                + " \\___/|_|  |_.__/|_|\\__|\n";
-        System.out.println(banner);
-        System.out.println(SEPARATOR);
-        System.out.println("Hello! I'm Orbit.");
-        System.out.println("What can I do for you?");
-        System.out.println(SEPARATOR);
-
-        Scanner scanner = new Scanner(System.in);
+        Ui ui = new Ui();
         Storage storage = new Storage(Paths.get("data", "orbit.txt"));
-        ArrayList<Task> tasks;
+        TaskList tasks;
+
+        ui.showWelcome();
         try {
-            tasks = storage.load();
+            tasks = new TaskList(storage.load());
         } catch (OrbitException exception) {
-            System.out.println("OOPS! " + exception.getMessage());
-            tasks = new ArrayList<>();
+            ui.showError(exception.getMessage());
+            tasks = new TaskList();
         }
-        boolean shouldContinue = true;
-        while (shouldContinue && scanner.hasNextLine()) {
-            String input = scanner.nextLine().trim();
-            try {
-                shouldContinue = handleCommand(input, tasks, storage);
-            } catch (OrbitException exception) {
-                System.out.println("OOPS! " + exception.getMessage());
-            }
-            System.out.println(SEPARATOR);
-        }
+
+        new Orbit(ui, storage, new Parser(), tasks).run();
     }
 }
