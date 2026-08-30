@@ -100,6 +100,18 @@ public class Ui {
     }
 
     /**
+     * Displays the tasks whose descriptions match a find command.
+     *
+     * @param tasks matching tasks in display order
+     */
+    public void showMatchingTasks(List<Task> tasks) {
+        output.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < tasks.size(); i++) {
+            output.println((i + 1) + "." + tasks.get(i));
+        }
+    }
+
+    /**
      * Displays a task that was marked as done.
      *
      * @param task updated task

@@ -9,11 +9,13 @@ public class ParsedCommand {
     private final CommandType type;
     private final Task task;
     private final Integer taskNumber;
+    private final String keyword;
 
-    private ParsedCommand(CommandType type, Task task, Integer taskNumber) {
+    private ParsedCommand(CommandType type, Task task, Integer taskNumber, String keyword) {
         this.type = type;
         this.task = task;
         this.taskNumber = taskNumber;
+        this.keyword = keyword;
     }
 
     /**
@@ -23,7 +25,7 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withoutArguments(CommandType type) {
-        return new ParsedCommand(type, null, null);
+        return new ParsedCommand(type, null, null, null);
     }
 
     /**
@@ -34,7 +36,7 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withTask(CommandType type, Task task) {
-        return new ParsedCommand(type, task, null);
+        return new ParsedCommand(type, task, null, null);
     }
 
     /**
@@ -45,7 +47,18 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withTaskNumber(CommandType type, int taskNumber) {
-        return new ParsedCommand(type, null, taskNumber);
+        return new ParsedCommand(type, null, taskNumber, null);
+    }
+
+    /**
+     * Creates a command that carries a search keyword.
+     *
+     * @param type command type
+     * @param keyword text to find in task descriptions
+     * @return parsed command
+     */
+    public static ParsedCommand withKeyword(CommandType type, String keyword) {
+        return new ParsedCommand(type, null, null, keyword);
     }
 
     /**
@@ -73,5 +86,14 @@ public class ParsedCommand {
      */
     public Integer getTaskNumber() {
         return taskNumber;
+    }
+
+    /**
+     * Returns the keyword carried by a find command.
+     *
+     * @return search keyword, or null for another command kind
+     */
+    public String getKeyword() {
+        return keyword;
     }
 }

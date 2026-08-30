@@ -58,6 +58,9 @@ public class Orbit {
         case LIST:
             ui.showTaskList(tasks.asList());
             return true;
+        case FIND:
+            ui.showMatchingTasks(tasks.find(command.getKeyword()));
+            return true;
         case MARK:
             markTask(command.getTaskNumber());
             return true;

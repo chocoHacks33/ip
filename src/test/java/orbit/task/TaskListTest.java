@@ -51,4 +51,28 @@ class TaskListTest {
         assertEquals("Task number 0 is out of range.", zeroError.getMessage());
         assertEquals("Task number 2 is out of range.", largeError.getMessage());
     }
+
+    @Test
+    void find_matchingDescriptions_returnsOrderedReadOnlyNonMutatingMatches() {
+        Todo first = new Todo("read book");
+        Deadline second = new Deadline("return book", LocalDate.of(2026, 9, 4));
+        Event unrelated = new Event("study group", LocalDate.of(2026, 9, 5),
+                LocalDate.of(2026, 9, 6));
+        TaskList tasks = new TaskList(List.of(first, second, first, unrelated));
+        List<Task> originalTasks = List.copyOf(tasks.asList());
+
+        List<Task> matches = tasks.find("book");
+
+        assertEquals(List.of(first, second, first), matches);
+        assertEquals(originalTasks, tasks.asList());
+        assertThrows(UnsupportedOperationException.class,
+                () -> matches.add(unrelated));
+    }
+
+    @Test
+    void find_noMatchingDescription_returnsEmptyList() {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+
+        assertEquals(List.of(), tasks.find("missing"));
+    }
 }
