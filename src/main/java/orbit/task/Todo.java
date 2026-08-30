@@ -23,6 +23,11 @@ public class Todo extends Task {
         super(description, isDone);
     }
 
+    /**
+     * Formats this todo for display to the user.
+     *
+     * @return todo marker, completion status, and description
+     */
     @Override
     public String toString() {
         return "[T]" + super.toString();

@@ -44,6 +44,11 @@ public class Deadline extends Task {
         return by;
     }
 
+    /**
+     * Formats this deadline using Orbit's user-facing date format.
+     *
+     * @return deadline marker, completion status, description, and due date
+     */
     @Override
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by.format(DISPLAY_FORMAT) + ")";

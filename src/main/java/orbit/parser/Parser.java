@@ -13,6 +13,12 @@ import orbit.task.Todo;
  */
 public class Parser {
     /**
+     * Creates a parser for Orbit's supported command syntax.
+     */
+    public Parser() {
+    }
+
+    /**
      * Parses one input line.
      *
      * @param rawInput input supplied by the user
