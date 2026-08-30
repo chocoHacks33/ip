@@ -1,18 +1,25 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 /**
- * Represents a task that takes place between two stated times.
+ * Represents a task that takes place between two dates.
  */
 public class Event extends Task {
-    private final String from;
-    private final String to;
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
+
+    private final LocalDate from;
+    private final LocalDate to;
 
     /**
      * Creates an incomplete event.
      *
      * @param description description shown to the user
-     * @param from raw start text supplied by the user
-     * @param to raw end text supplied by the user
+     * @param from start date
+     * @param to end date
      */
-    public Event(String description, String from, String to) {
+    public Event(String description, LocalDate from, LocalDate to) {
         this(description, from, to, false);
     }
 
@@ -20,36 +27,37 @@ public class Event extends Task {
      * Creates an event with a stored completion status.
      *
      * @param description description shown to the user
-     * @param from raw start text supplied by the user
-     * @param to raw end text supplied by the user
+     * @param from start date
+     * @param to end date
      * @param isDone whether the event is completed
      */
-    public Event(String description, String from, String to, boolean isDone) {
+    public Event(String description, LocalDate from, LocalDate to, boolean isDone) {
         super(description, isDone);
         this.from = from;
         this.to = to;
     }
 
     /**
-     * Returns the event start text.
+     * Returns the event start date.
      *
-     * @return raw start text
+     * @return start date
      */
-    public String getFrom() {
+    public LocalDate getFrom() {
         return from;
     }
 
     /**
-     * Returns the event end text.
+     * Returns the event end date.
      *
-     * @return raw end text
+     * @return end date
      */
-    public String getTo() {
+    public LocalDate getTo() {
         return to;
     }
 
     @Override
     public String toString() {
-        return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
+        return "[E]" + super.toString() + " (from: " + from.format(DISPLAY_FORMAT)
+                + " to: " + to.format(DISPLAY_FORMAT) + ")";
     }
 }

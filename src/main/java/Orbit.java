@@ -1,4 +1,6 @@
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -84,6 +86,21 @@ public class Orbit {
     }
 
     /**
+     * Parses a calendar date in Orbit's documented input format.
+     *
+     * @param value date text in yyyy-MM-dd format
+     * @return parsed calendar date
+     * @throws OrbitException if the value is not a real date in the required format
+     */
+    private static LocalDate parseDate(String value) throws OrbitException {
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException exception) {
+            throw new OrbitException("Please enter dates as yyyy-MM-dd.");
+        }
+    }
+
+    /**
      * Parses and validates a one-based task number.
      *
      * @param arguments text after a mark, unmark, or delete command
@@ -124,7 +141,7 @@ public class Orbit {
     }
 
     /**
-     * Parses a deadline in the form {@code deadline DESCRIPTION /by DATE_OR_TIME}.
+     * Parses a deadline in the form {@code deadline DESCRIPTION /by yyyy-MM-dd}.
      *
      * @param arguments text after the deadline command
      * @return a validated deadline
@@ -134,22 +151,22 @@ public class Orbit {
         String marker = "/by";
         int markerIndex = findOnlyMarker(arguments, marker);
         if (markerIndex < 0) {
-            throw new OrbitException("Use: deadline <description> /by <date or time>.");
+            throw new OrbitException("Use: deadline <description> /by <yyyy-MM-dd>.");
         }
 
         String description = arguments.substring(0, markerIndex).trim();
-        String by = arguments.substring(markerIndex + marker.length()).trim();
+        String byText = arguments.substring(markerIndex + marker.length()).trim();
         if (description.isEmpty()) {
             throw new OrbitException("The description of a deadline cannot be empty.");
         }
-        if (by.isEmpty()) {
-            throw new OrbitException("The date or time of a deadline cannot be empty.");
+        if (byText.isEmpty()) {
+            throw new OrbitException("The date of a deadline cannot be empty.");
         }
-        return new Deadline(description, by);
+        return new Deadline(description, parseDate(byText));
     }
 
     /**
-     * Parses an event in the form {@code event DESCRIPTION /from START /to END}.
+     * Parses an event in the form {@code event DESCRIPTION /from yyyy-MM-dd /to yyyy-MM-dd}.
      *
      * @param arguments text after the event command
      * @return a validated event
@@ -162,22 +179,22 @@ public class Orbit {
         int toIndex = findOnlyMarker(arguments, toMarker);
         boolean hasOneOrderedMarkerPair = fromIndex >= 0 && toIndex > fromIndex;
         if (!hasOneOrderedMarkerPair) {
-            throw new OrbitException("Use: event <description> /from <start> /to <end>.");
+            throw new OrbitException("Use: event <description> /from <yyyy-MM-dd> /to <yyyy-MM-dd>.");
         }
 
         String description = arguments.substring(0, fromIndex).trim();
-        String from = arguments.substring(fromIndex + fromMarker.length(), toIndex).trim();
-        String to = arguments.substring(toIndex + toMarker.length()).trim();
+        String fromText = arguments.substring(fromIndex + fromMarker.length(), toIndex).trim();
+        String toText = arguments.substring(toIndex + toMarker.length()).trim();
         if (description.isEmpty()) {
             throw new OrbitException("The description of an event cannot be empty.");
         }
-        if (from.isEmpty()) {
+        if (fromText.isEmpty()) {
             throw new OrbitException("The start of an event cannot be empty.");
         }
-        if (to.isEmpty()) {
+        if (toText.isEmpty()) {
             throw new OrbitException("The end of an event cannot be empty.");
         }
-        return new Event(description, from, to);
+        return new Event(description, parseDate(fromText), parseDate(toText));
     }
 
     /**
