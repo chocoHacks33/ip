@@ -13,9 +13,39 @@ public class Event extends Task {
      * @param to raw end text supplied by the user
      */
     public Event(String description, String from, String to) {
-        super(description);
+        this(description, from, to, false);
+    }
+
+    /**
+     * Creates an event with a stored completion status.
+     *
+     * @param description description shown to the user
+     * @param from raw start text supplied by the user
+     * @param to raw end text supplied by the user
+     * @param isDone whether the event is completed
+     */
+    public Event(String description, String from, String to, boolean isDone) {
+        super(description, isDone);
         this.from = from;
         this.to = to;
+    }
+
+    /**
+     * Returns the event start text.
+     *
+     * @return raw start text
+     */
+    public String getFrom() {
+        return from;
+    }
+
+    /**
+     * Returns the event end text.
+     *
+     * @return raw end text
+     */
+    public String getTo() {
+        return to;
     }
 
     @Override

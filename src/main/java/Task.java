@@ -11,8 +11,36 @@ public class Task {
      * @param description description shown to the user
      */
     public Task(String description) {
+        this(description, false);
+    }
+
+    /**
+     * Creates a task with the given description and completion status.
+     *
+     * @param description description shown to the user
+     * @param isDone whether the task is completed
+     */
+    public Task(String description, boolean isDone) {
         this.description = description;
-        this.isDone = false;
+        this.isDone = isDone;
+    }
+
+    /**
+     * Returns the task description.
+     *
+     * @return task description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Checks whether the task is completed.
+     *
+     * @return true when the task is completed
+     */
+    public boolean isDone() {
+        return isDone;
     }
 
     /**

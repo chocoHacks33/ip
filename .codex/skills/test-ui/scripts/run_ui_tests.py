@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,7 +20,7 @@ class TestCase:
 
     name: str
     aim: str
-    commands: str
+    sessions: tuple[str, ...]
     expected_fragments: tuple[str, ...]
 
 
@@ -33,22 +34,26 @@ def parse_test_plan(plan_path: Path) -> list[TestCase]:
         name = section.group("name").strip()
         body = section.group("body")
         aim_match = re.search(r"^Aim:\s*(.+)$", body, re.MULTILINE)
-        input_match = re.search(r"### Input\s*```(?:text)?\s*\n(.*?)```", body, re.DOTALL)
+        input_matches = re.findall(
+            r"^### (?:Input|Restart input(?: \d+)?)\s*\n```(?:text)?\s*\n(.*?)```",
+            body,
+            re.MULTILINE | re.DOTALL,
+        )
         expected_match = re.search(
             r"### Expected output \(ordered fragments\)\s*```(?:text)?\s*\n(.*?)```",
             body,
             re.DOTALL,
         )
-        if not (aim_match and input_match and expected_match):
+        if not (aim_match and input_matches and expected_match):
             raise ValueError(f"{name}: expected Aim, Input, and Expected output sections")
 
-        commands = input_match.group(1).rstrip() + "\n"
+        sessions = tuple(commands.rstrip() + "\n" for commands in input_matches)
         expected_fragments = tuple(
             line.strip() for line in expected_match.group(1).splitlines() if line.strip()
         )
         if not expected_fragments:
             raise ValueError(f"{name}: expected at least one output fragment")
-        cases.append(TestCase(name, aim_match.group(1).strip(), commands, expected_fragments))
+        cases.append(TestCase(name, aim_match.group(1).strip(), sessions, expected_fragments))
 
     if not cases:
         raise ValueError("No test cases found in the UI test plan")
@@ -125,26 +130,34 @@ def run_tests(java: Path, build_dir: Path, main_class: str, cases: list[TestCase
     for case_number, case in enumerate(cases, start=1):
         print(f"\n=== {case_number}. {case.name} ===")
         print(f"Aim: {case.aim}")
-        print("--- input ---")
-        print(case.commands, end="")
-
-        result = subprocess.run(
-            [str(java), "-cp", str(build_dir), main_class],
-            input=case.commands,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        combined_output = result.stdout + result.stderr
-        print("--- output ---")
-        print(combined_output, end="" if combined_output.endswith("\n") else "\n")
+        combined_output = ""
+        return_code = 0
+        with tempfile.TemporaryDirectory(prefix="orbit-ui-") as working_directory:
+            for session_number, commands in enumerate(case.sessions, start=1):
+                print(f"--- input session {session_number} ---")
+                print(commands, end="")
+                result = subprocess.run(
+                    [str(java), "-cp", str(build_dir), main_class],
+                    input=commands,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    cwd=working_directory,
+                )
+                session_output = result.stdout + result.stderr
+                combined_output += session_output
+                print(f"--- output session {session_number} ---")
+                print(session_output, end="" if session_output.endswith("\n") else "\n")
+                if result.returncode != 0:
+                    return_code = result.returncode
+                    break
 
         missing_fragment = assert_fragments_in_order(combined_output, case.expected_fragments)
-        if result.returncode != 0 or missing_fragment is not None:
+        if return_code != 0 or missing_fragment is not None:
             print("--- expected ordered fragments ---")
             print("\n".join(case.expected_fragments))
-            if result.returncode != 0:
-                print(f"FAIL: process exited with code {result.returncode}")
+            if return_code != 0:
+                print(f"FAIL: process exited with code {return_code}")
             else:
                 print(f"FAIL: missing or out-of-order fragment: {missing_fragment}")
             raise RuntimeError(f"{case.name} failed")

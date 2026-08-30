@@ -1,3 +1,4 @@
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -12,9 +13,17 @@ public class Orbit {
      *
      * @param tasks task storage
      * @param task task to add
+     * @param storage persistent task storage
+     * @throws OrbitException if the updated task list cannot be saved
      */
-    private static void addTask(ArrayList<Task> tasks, Task task) {
+    private static void addTask(ArrayList<Task> tasks, Task task, Storage storage) throws OrbitException {
         tasks.add(task);
+        try {
+            storage.save(tasks);
+        } catch (OrbitException exception) {
+            tasks.remove(tasks.size() - 1);
+            throw exception;
+        }
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
         System.out.println("Now you have " + tasks.size() + " tasks in the list.");
@@ -176,10 +185,11 @@ public class Orbit {
      *
      * @param input trimmed user input
      * @param tasks task storage
+     * @param storage persistent task storage
      * @return false only when the user enters a valid bye command
      * @throws OrbitException if the command or any of its arguments is invalid
      */
-    private static boolean handleCommand(String input, ArrayList<Task> tasks) throws OrbitException {
+    private static boolean handleCommand(String input, ArrayList<Task> tasks, Storage storage) throws OrbitException {
         if (input.isEmpty()) {
             throw new OrbitException("Please enter a command.");
         }
@@ -200,31 +210,57 @@ public class Orbit {
             return true;
         case MARK:
             int taskIndex = parseTaskIndex(arguments, tasks.size());
-            tasks.get(taskIndex).markAsDone();
+            Task task = tasks.get(taskIndex);
+            boolean wasDone = task.isDone();
+            task.markAsDone();
+            try {
+                storage.save(tasks);
+            } catch (OrbitException exception) {
+                if (!wasDone) {
+                    task.markAsNotDone();
+                }
+                throw exception;
+            }
             System.out.println("Nice! I've marked this task as done:");
-            System.out.println("  " + tasks.get(taskIndex));
+            System.out.println("  " + task);
             return true;
         case UNMARK:
             taskIndex = parseTaskIndex(arguments, tasks.size());
-            tasks.get(taskIndex).markAsNotDone();
+            task = tasks.get(taskIndex);
+            wasDone = task.isDone();
+            task.markAsNotDone();
+            try {
+                storage.save(tasks);
+            } catch (OrbitException exception) {
+                if (wasDone) {
+                    task.markAsDone();
+                }
+                throw exception;
+            }
             System.out.println("OK, I've marked this task as not done yet:");
-            System.out.println("  " + tasks.get(taskIndex));
+            System.out.println("  " + task);
             return true;
         case DELETE:
             taskIndex = parseTaskIndex(arguments, tasks.size());
             Task removedTask = tasks.remove(taskIndex);
+            try {
+                storage.save(tasks);
+            } catch (OrbitException exception) {
+                tasks.add(taskIndex, removedTask);
+                throw exception;
+            }
             System.out.println("Noted. I've removed this task:");
             System.out.println("  " + removedTask);
             System.out.println("Now you have " + tasks.size() + " tasks in the list.");
             return true;
         case TODO:
-            addTask(tasks, parseTodo(arguments));
+            addTask(tasks, parseTodo(arguments), storage);
             return true;
         case DEADLINE:
-            addTask(tasks, parseDeadline(arguments));
+            addTask(tasks, parseDeadline(arguments), storage);
             return true;
         case EVENT:
-            addTask(tasks, parseEvent(arguments));
+            addTask(tasks, parseEvent(arguments), storage);
             return true;
         default:
             throw new OrbitException("I don't know that command.");
@@ -249,12 +285,19 @@ public class Orbit {
         System.out.println(SEPARATOR);
 
         Scanner scanner = new Scanner(System.in);
-        ArrayList<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(Paths.get("data", "orbit.txt"));
+        ArrayList<Task> tasks;
+        try {
+            tasks = storage.load();
+        } catch (OrbitException exception) {
+            System.out.println("OOPS! " + exception.getMessage());
+            tasks = new ArrayList<>();
+        }
         boolean shouldContinue = true;
         while (shouldContinue && scanner.hasNextLine()) {
             String input = scanner.nextLine().trim();
             try {
-                shouldContinue = handleCommand(input, tasks);
+                shouldContinue = handleCommand(input, tasks, storage);
             } catch (OrbitException exception) {
                 System.out.println("OOPS! " + exception.getMessage());
             }

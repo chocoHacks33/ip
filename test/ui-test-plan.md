@@ -281,3 +281,54 @@ Now you have 0 tasks in the list.
 OOPS! Task number 1 is out of range.
 Bye. Hope to see you again soon!
 ```
+
+## TC9: Persist every task type and mutation
+
+Aim: Verify tasks, punctuation, order, and completion status survive restarts, including later mutations.
+
+### Input
+
+```text
+todo save | punctuation
+deadline saved deadline /by Friday
+event saved event /from Monday /to Tuesday
+mark 2
+bye
+```
+
+### Restart input 1
+
+```text
+list
+unmark 2
+delete 1
+bye
+```
+
+### Restart input 2
+
+```text
+list
+bye
+```
+
+### Expected output (ordered fragments)
+
+```text
+[T][ ] save | punctuation
+[D][ ] saved deadline (by: Friday)
+[E][ ] saved event (from: Monday to: Tuesday)
+[D][X] saved deadline (by: Friday)
+Bye. Hope to see you again soon!
+1.[T][ ] save | punctuation
+2.[D][X] saved deadline (by: Friday)
+3.[E][ ] saved event (from: Monday to: Tuesday)
+[D][ ] saved deadline (by: Friday)
+Noted. I've removed this task:
+[T][ ] save | punctuation
+Now you have 2 tasks in the list.
+Bye. Hope to see you again soon!
+1.[D][ ] saved deadline (by: Friday)
+2.[E][ ] saved event (from: Monday to: Tuesday)
+Bye. Hope to see you again soon!
+```
