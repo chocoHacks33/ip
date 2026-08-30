@@ -1,7 +1,11 @@
+package orbit.ui;
+
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Scanner;
+
+import orbit.task.Task;
 
 /**
  * Reads console input and presents Orbit's user-facing messages.

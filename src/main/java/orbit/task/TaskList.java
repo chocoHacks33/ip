@@ -1,6 +1,10 @@
+package orbit.task;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import orbit.exception.OrbitException;
 
 /**
  * Owns Orbit's ordered collection of tasks and its index validation.

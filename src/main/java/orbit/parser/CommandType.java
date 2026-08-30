@@ -1,3 +1,7 @@
+package orbit.parser;
+
+import orbit.exception.OrbitException;
+
 /**
  * Identifies the commands understood by Orbit.
  */

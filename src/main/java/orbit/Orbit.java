@@ -1,4 +1,14 @@
+package orbit;
+
 import java.nio.file.Paths;
+
+import orbit.exception.OrbitException;
+import orbit.parser.ParsedCommand;
+import orbit.parser.Parser;
+import orbit.storage.Storage;
+import orbit.task.Task;
+import orbit.task.TaskList;
+import orbit.ui.Ui;
 
 /**
  * Coordinates Orbit's parser, task list, storage, and console UI.
