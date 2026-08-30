@@ -1,3 +1,7 @@
+package orbit.parser;
+
+import orbit.task.Task;
+
 /**
  * Contains the validated values needed to execute one Orbit command.
  */

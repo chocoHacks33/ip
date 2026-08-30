@@ -169,7 +169,7 @@ def run_tests(java: Path, build_dir: Path, main_class: str, cases: list[TestCase
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", default="test/ui-test-plan.md", help="Markdown test plan path")
-    parser.add_argument("--main-class", default="Orbit", help="Java class containing main")
+    parser.add_argument("--main-class", default="orbit.Orbit", help="Java class containing main")
     parser.add_argument("--java-home", help="JDK 25 directory; overrides JAVA_HOME")
     arguments = parser.parse_args()
 

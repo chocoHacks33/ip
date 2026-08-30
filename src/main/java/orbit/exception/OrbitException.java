@@ -1,3 +1,5 @@
+package orbit.exception;
+
 /**
  * Signals that Orbit cannot safely execute a user command.
  */
