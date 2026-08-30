@@ -11,6 +11,16 @@ public class Todo extends Task {
         super(description);
     }
 
+    /**
+     * Creates a todo with a stored completion status.
+     *
+     * @param description description shown to the user
+     * @param isDone whether the todo is completed
+     */
+    public Todo(String description, boolean isDone) {
+        super(description, isDone);
+    }
+
     @Override
     public String toString() {
         return "[T]" + super.toString();
