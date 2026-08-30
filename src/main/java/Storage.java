@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -97,7 +98,8 @@ public class Storage {
             default:
                 throw new IllegalArgumentException("Unknown task type");
             }
-        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException exception) {
+        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException
+                | DateTimeParseException exception) {
             throw new OrbitException("The data file is invalid at line " + lineNumber + ".");
         }
     }
