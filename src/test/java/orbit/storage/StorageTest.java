@@ -38,15 +38,15 @@ class StorageTest {
                 LocalDate.of(2026, 9, 2));
 
         storage.save(List.of(todo, deadline, event));
-        List<Task> loaded = storage.load();
+        List<Task> loadedTasks = storage.load();
 
-        assertEquals(3, loaded.size());
-        assertInstanceOf(Todo.class, loaded.get(0));
-        assertEquals("read | review", loaded.get(0).getDescription());
-        Deadline loadedDeadline = assertInstanceOf(Deadline.class, loaded.get(1));
+        assertEquals(3, loadedTasks.size());
+        assertInstanceOf(Todo.class, loadedTasks.get(0));
+        assertEquals("read | review", loadedTasks.get(0).getDescription());
+        Deadline loadedDeadline = assertInstanceOf(Deadline.class, loadedTasks.get(1));
         assertTrue(loadedDeadline.isDone());
         assertEquals(LocalDate.of(2028, 2, 29), loadedDeadline.getBy());
-        Event loadedEvent = assertInstanceOf(Event.class, loaded.get(2));
+        Event loadedEvent = assertInstanceOf(Event.class, loadedTasks.get(2));
         assertFalse(loadedEvent.isDone());
         assertEquals(LocalDate.of(2026, 9, 1), loadedEvent.getFrom());
         assertEquals(LocalDate.of(2026, 9, 2), loadedEvent.getTo());
@@ -57,9 +57,9 @@ class StorageTest {
         Path dataFile = temporaryDirectory.resolve("missing").resolve("orbit.txt");
         Storage storage = new Storage(dataFile);
 
-        List<Task> loaded = storage.load();
+        List<Task> loadedTasks = storage.load();
 
-        assertTrue(loaded.isEmpty());
+        assertTrue(loadedTasks.isEmpty());
         assertTrue(Files.isRegularFile(dataFile));
     }
 

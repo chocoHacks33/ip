@@ -52,31 +52,33 @@ public class Orbit {
 
     private boolean execute(ParsedCommand command) throws OrbitException {
         switch (command.getType()) {
-        case BYE:
-            ui.showGoodbye();
-            return false;
-        case LIST:
-            ui.showTaskList(tasks.asList());
-            return true;
-        case FIND:
-            ui.showMatchingTasks(tasks.find(command.getKeyword()));
-            return true;
-        case MARK:
-            markTask(command.getTaskNumber());
-            return true;
-        case UNMARK:
-            unmarkTask(command.getTaskNumber());
-            return true;
-        case DELETE:
-            deleteTask(command.getTaskNumber());
-            return true;
-        case TODO:
-        case DEADLINE:
-        case EVENT:
-            addTask(command.getTask());
-            return true;
-        default:
-            throw new OrbitException("I don't know that command.");
+            case BYE:
+                ui.showGoodbye();
+                return false;
+            case LIST:
+                ui.showTaskList(tasks.asList());
+                return true;
+            case FIND:
+                ui.showMatchingTasks(tasks.find(command.getKeyword()));
+                return true;
+            case MARK:
+                markTask(command.getTaskNumber());
+                return true;
+            case UNMARK:
+                unmarkTask(command.getTaskNumber());
+                return true;
+            case DELETE:
+                deleteTask(command.getTaskNumber());
+                return true;
+            case TODO:
+                // Fallthrough
+            case DEADLINE:
+                // Fallthrough
+            case EVENT:
+                addTask(command.getTask());
+                return true;
+            default:
+                throw new OrbitException("I don't know that command.");
         }
     }
 
