@@ -1,6 +1,40 @@
 # Orbit
 
-Orbit is a friendly command-line task assistant built for the CS2103/T individual project. Given below are instructions on how to run it.
+Orbit is a local task assistant with a JavaFX chat interface, built for the CS2103/T individual project.
+It manages todos, deadlines and events, and saves successful changes to `data/orbit.txt` in the working folder.
+The command-line interface remains available for terminal use and regression testing.
+
+## Run Orbit
+
+Prerequisite: JDK 25. Set `JAVA_HOME` to that installation.
+
+1. Run `./gradlew run` (Windows: `gradlew.bat run`) to open the GUI.
+2. Type a command and press Enter or click Send.
+3. Use `bye` to close the window, or close it normally. Successful task changes are already saved.
+
+Build a self-contained JAR with `./gradlew shadowJar`, then run `java -jar build/libs/Orbit.jar`.
+JavaFX dependencies for Windows, macOS and Linux are included as prescribed by the course tutorial;
+the build and GUI have been tested on Windows with JDK 25. Mac users should follow the course's
+JDK distribution advisory. A JavaFX unnamed-module warning may appear and is not a startup failure.
+
+For the text UI, run `./gradlew runCli` or `java -jar build/libs/Orbit.jar --cli`.
+Both interfaces use the same data format and command processor. Do not run two instances against
+the same data file at once, because each session maintains its own in-memory list.
+
+## Commands
+
+| Command | Example |
+| --- | --- |
+| Add a todo | `todo Read CS2103 notes` |
+| Add a deadline | `deadline Submit iP /by 2026-09-04` |
+| Add an event | `event Study group /from 2026-09-05 /to 2026-09-06` |
+| List tasks | `list` |
+| Mark / unmark | `mark 1` / `unmark 1` |
+| Delete | `delete 1` |
+| Search descriptions (case-sensitive) | `find CS2103` |
+| Exit | `bye` |
+
+Dates must use `yyyy-MM-dd`. Task numbers refer to the full `list`, not the renumbered search results.
 
 ## Checking the code
 
@@ -12,6 +46,17 @@ The configuration in `config/checkstyle/` comes from
 [SE-EDU AddressBook Level 3](https://github.com/se-edu/addressbook-level3/tree/master/config/checkstyle),
 as recommended by the [course Checkstyle tutorial](https://se-education.org/guides/tutorials/checkstyle.html).
 Only the upstream test Javadoc exemptions are applied; application checks are not suppressed.
+
+For real JavaFX interaction tests, run `./gradlew guiTest` with a desktop display available.
+These tests exercise the packaged JAR and save a scene screenshot under `build/screenshots/`.
+See [GUI test plan](test/gui-test-plan.md) and [console test plan](test/ui-test-plan.md).
+
+## Acknowledgements
+
+The launcher, custom dialog and FXML/controller structure are adapted from the
+[SE-EDU JavaFX tutorial Parts 1–4](https://se-education.org/guides/tutorials/javaFx.html).
+The tutorial was built and tested in a separate companion project before adapting Orbit.
+Orbit uses styled speaker initials instead of the tutorial's image avatars.
 
 ## Setting up in Intellij
 

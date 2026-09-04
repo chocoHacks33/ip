@@ -11,7 +11,7 @@ import orbit.task.TaskList;
 import orbit.ui.Ui;
 
 /**
- * Coordinates Orbit's parser, task list, storage, and console UI.
+ * Coordinates Orbit's parser, task list, storage, and response output.
  */
 public class Orbit {
     private final Ui ui;
@@ -40,13 +40,23 @@ public class Orbit {
     public void run() {
         boolean shouldContinue = true;
         while (shouldContinue && ui.hasNextCommand()) {
-            try {
-                ParsedCommand command = parser.parse(ui.readCommand());
-                shouldContinue = execute(command);
-            } catch (OrbitException exception) {
-                ui.showError(exception.getMessage());
-            }
+            shouldContinue = processCommand(ui.readCommand());
             ui.showSeparator();
+        }
+    }
+
+    /**
+     * Processes one command for either the console or graphical interface.
+     *
+     * @param input complete user command
+     * @return false only when a valid exit command was processed
+     */
+    public boolean processCommand(String input) {
+        try {
+            return execute(parser.parse(input));
+        } catch (OrbitException exception) {
+            ui.showError(exception.getMessage());
+            return true;
         }
     }
 

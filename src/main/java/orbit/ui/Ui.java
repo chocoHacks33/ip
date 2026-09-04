@@ -61,7 +61,16 @@ public class Ui {
                 + "| | | | '__| '_ \\| | __|\n"
                 + "| |_| | |  | |_) | | |_ \n"
                 + " \\___/|_|  |_.__/|_|\\__|\n";
-        showLines(banner, SEPARATOR, "Hello! I'm Orbit.", "What can I do for you?", SEPARATOR);
+        showLines(banner, SEPARATOR);
+        showGreeting();
+        showSeparator();
+    }
+
+    /**
+     * Displays the greeting shared by both interfaces, without console decoration.
+     */
+    public void showGreeting() {
+        showLines("Hello! I'm Orbit.", "What can I do for you?");
     }
 
     /**
