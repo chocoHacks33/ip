@@ -61,18 +61,14 @@ public class Ui {
                 + "| | | | '__| '_ \\| | __|\n"
                 + "| |_| | |  | |_) | | |_ \n"
                 + " \\___/|_|  |_.__/|_|\\__|\n";
-        output.println(banner);
-        output.println(SEPARATOR);
-        output.println("Hello! I'm Orbit.");
-        output.println("What can I do for you?");
-        output.println(SEPARATOR);
+        showLines(banner, SEPARATOR, "Hello! I'm Orbit.", "What can I do for you?", SEPARATOR);
     }
 
     /**
      * Displays the goodbye message.
      */
     public void showGoodbye() {
-        output.println("Bye. Hope to see you again soon!");
+        showLines("Bye. Hope to see you again soon!");
     }
 
     /**
@@ -82,9 +78,8 @@ public class Ui {
      * @param taskCount updated task count
      */
     public void showAddedTask(Task task, int taskCount) {
-        output.println("Got it. I've added this task:");
-        output.println("  " + task);
-        output.println("Now you have " + taskCount + " tasks in the list.");
+        showLines("Got it. I've added this task:", "  " + task,
+                "Now you have " + taskCount + " tasks in the list.");
     }
 
     /**
@@ -93,9 +88,9 @@ public class Ui {
      * @param tasks tasks in display order
      */
     public void showTaskList(List<Task> tasks) {
-        output.println("Here are the tasks in your list:");
+        showLines("Here are the tasks in your list:");
         for (int i = 0; i < tasks.size(); i++) {
-            output.println((i + 1) + "." + tasks.get(i));
+            showLines((i + 1) + "." + tasks.get(i));
         }
     }
 
@@ -105,9 +100,9 @@ public class Ui {
      * @param tasks matching tasks in display order
      */
     public void showMatchingTasks(List<Task> tasks) {
-        output.println("Here are the matching tasks in your list:");
+        showLines("Here are the matching tasks in your list:");
         for (int i = 0; i < tasks.size(); i++) {
-            output.println((i + 1) + "." + tasks.get(i));
+            showLines((i + 1) + "." + tasks.get(i));
         }
     }
 
@@ -117,8 +112,7 @@ public class Ui {
      * @param task updated task
      */
     public void showMarkedTask(Task task) {
-        output.println("Nice! I've marked this task as done:");
-        output.println("  " + task);
+        showLines("Nice! I've marked this task as done:", "  " + task);
     }
 
     /**
@@ -127,8 +121,7 @@ public class Ui {
      * @param task updated task
      */
     public void showUnmarkedTask(Task task) {
-        output.println("OK, I've marked this task as not done yet:");
-        output.println("  " + task);
+        showLines("OK, I've marked this task as not done yet:", "  " + task);
     }
 
     /**
@@ -138,9 +131,8 @@ public class Ui {
      * @param taskCount updated task count
      */
     public void showDeletedTask(Task task, int taskCount) {
-        output.println("Noted. I've removed this task:");
-        output.println("  " + task);
-        output.println("Now you have " + taskCount + " tasks in the list.");
+        showLines("Noted. I've removed this task:", "  " + task,
+                "Now you have " + taskCount + " tasks in the list.");
     }
 
     /**
@@ -149,13 +141,24 @@ public class Ui {
      * @param message error explanation
      */
     public void showError(String message) {
-        output.println("OOPS! " + message);
+        showLines("OOPS! " + message);
     }
 
     /**
      * Displays a separator after a command response.
      */
     public void showSeparator() {
-        output.println(SEPARATOR);
+        showLines(SEPARATOR);
+    }
+
+    /**
+     * Prints any number of message lines in order, preserving the platform's line endings.
+     *
+     * @param lines message lines to print
+     */
+    private void showLines(String... lines) {
+        for (String line : lines) {
+            output.println(line);
+        }
     }
 }
