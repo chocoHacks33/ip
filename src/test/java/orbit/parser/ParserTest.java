@@ -39,16 +39,18 @@ class ParserTest {
 
     @Test
     void parse_impossibleDate_throwsHelpfulError() {
-        OrbitException exception = assertThrows(OrbitException.class,
-                () -> parser.parse("deadline impossible /by 2026-02-29"));
+        OrbitException exception = assertThrows(OrbitException.class, () -> {
+            parser.parse("deadline impossible /by 2026-02-29");
+        });
 
         assertEquals("Please enter dates as yyyy-MM-dd.", exception.getMessage());
     }
 
     @Test
     void parse_duplicateMarker_rejectsCommand() {
-        OrbitException exception = assertThrows(OrbitException.class,
-                () -> parser.parse("deadline report /by 2026-09-01 /by 2026-09-02"));
+        OrbitException exception = assertThrows(OrbitException.class, () -> {
+            parser.parse("deadline report /by 2026-09-01 /by 2026-09-02");
+        });
 
         assertEquals("Use: deadline <description> /by <yyyy-MM-dd>.",
                 exception.getMessage());
@@ -64,8 +66,7 @@ class ParserTest {
 
     @Test
     void parse_findWithoutKeyword_throwsHelpfulError() {
-        OrbitException exception = assertThrows(OrbitException.class,
-                () -> parser.parse("find"));
+        OrbitException exception = assertThrows(OrbitException.class, () -> parser.parse("find"));
 
         assertEquals("The keyword for a find command cannot be empty.",
                 exception.getMessage());
@@ -73,8 +74,7 @@ class ParserTest {
 
     @Test
     void parse_findNearMiss_rejectsUnknownCommand() {
-        OrbitException exception = assertThrows(OrbitException.class,
-                () -> parser.parse("finder book"));
+        OrbitException exception = assertThrows(OrbitException.class, () -> parser.parse("finder book"));
 
         assertEquals("I don't know that command.", exception.getMessage());
     }
