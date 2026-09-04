@@ -87,11 +87,12 @@ def resolve_java_tools(java_home_argument: str | None) -> tuple[Path, Path]:
     return java, javac
 
 
-def compile_sources(repo_root: Path, javac: Path) -> Path:
-    """Compile every Java source into a clean ignored directory."""
-    source_files = sorted((repo_root / "src" / "main" / "java").rglob("*.java"))
-    if not source_files:
-        raise RuntimeError("No Java source files found under src/main/java")
+def compile_sources(repo_root: Path, javac: Path, main_class: str) -> Path:
+    """Compile the console entry point and its dependencies, without requiring JavaFX."""
+    source_root = repo_root / "src" / "main" / "java"
+    main_source = source_root.joinpath(*main_class.split(".")).with_suffix(".java")
+    if not main_source.is_file():
+        raise RuntimeError(f"Console entry point not found: {main_source}")
 
     build_dir = (repo_root / "_temp" / "ui-test-classes").resolve()
     expected_parent = (repo_root / "_temp").resolve()
@@ -102,7 +103,7 @@ def compile_sources(repo_root: Path, javac: Path) -> Path:
     build_dir.mkdir(parents=True)
 
     compile_result = subprocess.run(
-        [str(javac), "-d", str(build_dir), *(str(path) for path in source_files)],
+        [str(javac), "-d", str(build_dir), "-sourcepath", str(source_root), str(main_source)],
         capture_output=True,
         text=True,
     )
@@ -178,7 +179,7 @@ def main() -> int:
     try:
         cases = parse_test_plan(plan_path)
         java, javac = resolve_java_tools(arguments.java_home)
-        build_dir = compile_sources(repo_root, javac)
+        build_dir = compile_sources(repo_root, javac, arguments.main_class)
         run_tests(java, build_dir, arguments.main_class, cases)
     except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
         sys.stdout.flush()

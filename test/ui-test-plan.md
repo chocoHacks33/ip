@@ -2,6 +2,9 @@
 
 Run each case in a clean folder. Restart inputs within a case reuse that folder. Expected lines are matched as ordered fragments so optional banners, separators, and indentation can change without making the tests brittle.
 
+These command-line behaviors are unchanged by Level 10. The GUI uses the same command processor;
+its additional interaction and layout checks are in [gui-test-plan.md](gui-test-plan.md).
+
 ## TC1: Add and list every task type
 
 Aim: Verify every task type retains its marker and displays stored dates in a friendly format.

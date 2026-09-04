@@ -20,4 +20,4 @@ Run repeatable, fail-fast console tests while keeping `test/ui-test-plan.md` as 
 
 5. Read the console transcript printed for every case. Stop at the first failure and report its actual output plus the missing expected fragment. Do not commit code until all cases pass.
 
-The runner compiles every file in `src/main/java` into the ignored `_temp/ui-test-classes` directory. It does not write inside the source tree or preserve application data between test cases.
+The runner compiles the console entry point and its transitive dependencies from `src/main/java` into the ignored `_temp/ui-test-classes` directory. JavaFX classes are compiled and tested separately by Gradle. It does not write inside the source tree or preserve application data between test cases.
