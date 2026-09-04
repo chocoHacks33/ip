@@ -2,6 +2,17 @@
 
 Orbit is a friendly command-line task assistant built for the CS2103/T individual project. Given below are instructions on how to run it.
 
+## Checking the code
+
+With `JAVA_HOME` pointing to JDK 25, run `./gradlew check` (Windows: `gradlew.bat check`).
+This runs the JUnit tests and Checkstyle against both production and test sources.
+Style warnings fail the build, so they cannot be overlooked.
+
+The configuration in `config/checkstyle/` comes from
+[SE-EDU AddressBook Level 3](https://github.com/se-edu/addressbook-level3/tree/master/config/checkstyle),
+as recommended by the [course Checkstyle tutorial](https://se-education.org/guides/tutorials/checkstyle.html).
+Only the upstream test Javadoc exemptions are applied; application checks are not suppressed.
+
 ## Setting up in Intellij
 
 Prerequisites: JDK 25, update Intellij to the most recent version.

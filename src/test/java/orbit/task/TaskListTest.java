@@ -43,10 +43,8 @@ class TaskListTest {
     void get_outOfRangeNumber_throwsHelpfulError() {
         TaskList tasks = new TaskList(List.of(new Todo("only")));
 
-        OrbitException zeroError = assertThrows(OrbitException.class,
-                () -> tasks.get(0));
-        OrbitException largeError = assertThrows(OrbitException.class,
-                () -> tasks.get(2));
+        OrbitException zeroError = assertThrows(OrbitException.class, () -> tasks.get(0));
+        OrbitException largeError = assertThrows(OrbitException.class, () -> tasks.get(2));
 
         assertEquals("Task number 0 is out of range.", zeroError.getMessage());
         assertEquals("Task number 2 is out of range.", largeError.getMessage());
@@ -65,8 +63,7 @@ class TaskListTest {
 
         assertEquals(List.of(first, second, first), matches);
         assertEquals(originalTasks, tasks.asList());
-        assertThrows(UnsupportedOperationException.class,
-                () -> matches.add(unrelated));
+        assertThrows(UnsupportedOperationException.class, () -> matches.add(unrelated));
     }
 
     @Test
