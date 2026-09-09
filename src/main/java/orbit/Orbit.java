@@ -1,6 +1,7 @@
 package orbit;
 
 import java.nio.file.Paths;
+import java.util.List;
 
 import orbit.exception.OrbitException;
 import orbit.parser.ParsedCommand;
@@ -67,6 +68,9 @@ public class Orbit {
                 return false;
             case LIST:
                 ui.showTaskList(tasks.asList());
+                return true;
+            case SORT:
+                sortTasks();
                 return true;
             case FIND:
                 ui.showMatchingTasks(tasks.find(command.getKeyword()));
@@ -142,6 +146,18 @@ public class Orbit {
             throw exception;
         }
         ui.showDeletedTask(removedTask, tasks.size());
+    }
+
+    private void sortTasks() throws OrbitException {
+        List<Task> previousOrder = List.copyOf(tasks.asList());
+        tasks.sortChronologically();
+        try {
+            saveTasks();
+        } catch (OrbitException exception) {
+            tasks.restoreOrder(previousOrder);
+            throw exception;
+        }
+        ui.showSortedTasks(tasks.asList());
     }
 
     private void saveTasks() throws OrbitException {

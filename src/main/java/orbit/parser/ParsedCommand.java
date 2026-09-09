@@ -26,7 +26,8 @@ public class ParsedCommand {
      */
     public static ParsedCommand withoutArguments(CommandType type) {
         assert type == CommandType.BYE || type == CommandType.LIST
-                : "Only bye and list commands have no arguments";
+                || type == CommandType.SORT
+                : "Only bye, list, and sort commands have no arguments";
         return new ParsedCommand(type, null, null, null);
     }
 

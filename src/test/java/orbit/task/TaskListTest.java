@@ -3,6 +3,7 @@ package orbit.task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -80,5 +81,37 @@ class TaskListTest {
         TaskList tasks = new TaskList(List.of(new Todo("read book")));
 
         assertEquals(List.of(), tasks.find("missing"));
+    }
+
+    @Test
+    void sortChronologically_mixedTasks_ordersDatesStablyAndPutsTodosLast() {
+        Todo firstTodo = new Todo("first todo");
+        Deadline lateDeadline = new Deadline("later", LocalDate.of(2026, 9, 9));
+        Event earlyEvent = new Event("early event", LocalDate.of(2026, 9, 2),
+                LocalDate.of(2026, 9, 3));
+        Deadline sameDayDeadline = new Deadline("same day", LocalDate.of(2026, 9, 2));
+        Todo secondTodo = new Todo("second todo");
+        lateDeadline.markAsDone();
+        TaskList tasks = new TaskList(List.of(firstTodo, lateDeadline, earlyEvent,
+                sameDayDeadline, secondTodo));
+
+        tasks.sortChronologically();
+
+        assertEquals(List.of(earlyEvent, sameDayDeadline, lateDeadline, firstTodo, secondTodo),
+                tasks.asList());
+        assertTrue(lateDeadline.isDone());
+    }
+
+    @Test
+    void sortChronologically_emptyAndSingleTaskLists_remainValid() {
+        TaskList emptyTasks = new TaskList();
+        Todo onlyTask = new Todo("only");
+        TaskList singleTask = new TaskList(List.of(onlyTask));
+
+        emptyTasks.sortChronologically();
+        singleTask.sortChronologically();
+
+        assertEquals(List.of(), emptyTasks.asList());
+        assertEquals(List.of(onlyTask), singleTask.asList());
     }
 }

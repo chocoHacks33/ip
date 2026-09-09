@@ -270,8 +270,10 @@ class GuiTest {
         send("deadline Submit iP update /by 2026-09-04", false);
         send("event CS2103 tutorial /from 2026-09-04 /to 2026-09-04", true);
         send("mark 1", false);
+        send("sort", false);
         send("list", true);
-        assertTrue(onFx(() -> lastMessage().contains("1.[T][X] Read CS2103 notes")));
+        assertTrue(onFx(() -> lastMessage().contains("1.[D][ ] Submit iP update")));
+        assertTrue(onFx(() -> lastMessage().contains("3.[T][X] Read CS2103 notes")));
 
         WritableImage snapshot = onFx(() -> stage.getScene().snapshot(null));
         int width = (int) snapshot.getWidth();

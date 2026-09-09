@@ -37,6 +37,8 @@ public class Parser {
             case BYE:
                 // Fallthrough
             case LIST:
+                // Fallthrough
+            case SORT:
                 requireNoArguments(arguments);
                 return ParsedCommand.withoutArguments(type);
             case MARK:

@@ -12,6 +12,9 @@ public enum CommandType {
     /** Displays every stored task. */
     LIST("list"),
 
+    /** Sorts dated tasks chronologically and places undated tasks last. */
+    SORT("sort"),
+
     /** Marks one task as completed. */
     MARK("mark"),
 

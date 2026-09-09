@@ -109,6 +109,15 @@ public class Ui {
         showNumberedTasks("Here are the matching tasks in your list:", tasks);
     }
 
+    /**
+     * Displays the complete task list after a chronological sort.
+     *
+     * @param tasks sorted tasks in display order
+     */
+    public void showSortedTasks(List<Task> tasks) {
+        showNumberedTasks("Here are your tasks sorted chronologically:", tasks);
+    }
+
     private void showNumberedTasks(String heading, List<Task> tasks) {
         showLines(heading);
         for (int i = 0; i < tasks.size(); i++) {

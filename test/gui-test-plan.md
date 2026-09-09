@@ -9,8 +9,9 @@ All test data belongs in fresh temporary directories, never the user's data fold
    actual response, and clear the field. Only one command must execute per action.
 3. Submit blank/invalid commands and malformed dates. Errors must be readable in the conversation;
    valid commands afterward must still work.
-4. Add todos, deadlines and events, then mark, unmark, delete and find. Verify the same results as
-   the command-line plan. Restart with the same temporary data file and verify saved state.
+4. Add todos, deadlines and events, then mark, unmark, delete, find and sort. Verify the same results
+   as the command-line plan. Restart with the same temporary data file and verify saved state,
+   including the sorted order.
 5. Send long messages until the conversation exceeds its viewport. Verify wrapping and auto-scroll;
    resize the window to check that messages remain within its width and grow vertically.
 6. Send `bye now`: it is an error, not an exit. Send `bye`: show the farewell, disable input,
