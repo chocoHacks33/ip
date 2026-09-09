@@ -97,10 +97,7 @@ public class Ui {
      * @param tasks tasks in display order
      */
     public void showTaskList(List<Task> tasks) {
-        showLines("Here are the tasks in your list:");
-        for (int i = 0; i < tasks.size(); i++) {
-            showLines((i + 1) + "." + tasks.get(i));
-        }
+        showNumberedTasks("Here are the tasks in your list:", tasks);
     }
 
     /**
@@ -109,7 +106,11 @@ public class Ui {
      * @param tasks matching tasks in display order
      */
     public void showMatchingTasks(List<Task> tasks) {
-        showLines("Here are the matching tasks in your list:");
+        showNumberedTasks("Here are the matching tasks in your list:", tasks);
+    }
+
+    private void showNumberedTasks(String heading, List<Task> tasks) {
+        showLines(heading);
         for (int i = 0; i < tasks.size(); i++) {
             showLines((i + 1) + "." + tasks.get(i));
         }
