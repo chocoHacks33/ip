@@ -25,6 +25,8 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withoutArguments(CommandType type) {
+        assert type == CommandType.BYE || type == CommandType.LIST
+                : "Only bye and list commands have no arguments";
         return new ParsedCommand(type, null, null, null);
     }
 
@@ -36,6 +38,9 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withTask(CommandType type, Task task) {
+        assert type == CommandType.TODO || type == CommandType.DEADLINE
+                || type == CommandType.EVENT : "Only add commands carry a task";
+        assert task != null : "An add command should carry a task";
         return new ParsedCommand(type, task, null, null);
     }
 
@@ -47,6 +52,8 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withTaskNumber(CommandType type, int taskNumber) {
+        assert type == CommandType.MARK || type == CommandType.UNMARK
+                || type == CommandType.DELETE : "Only indexed commands carry a task number";
         return new ParsedCommand(type, null, taskNumber, null);
     }
 
@@ -58,6 +65,9 @@ public class ParsedCommand {
      * @return parsed command
      */
     public static ParsedCommand withKeyword(CommandType type, String keyword) {
+        assert type == CommandType.FIND : "Only a find command carries a keyword";
+        assert keyword != null && !keyword.isBlank()
+                : "A find command should carry a non-blank keyword";
         return new ParsedCommand(type, null, null, keyword);
     }
 

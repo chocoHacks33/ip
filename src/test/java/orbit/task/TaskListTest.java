@@ -40,6 +40,15 @@ class TaskListTest {
     }
 
     @Test
+    void restore_invalidRollbackState_throwsAssertionError() {
+        TaskList tasks = new TaskList(List.of(new Todo("only")));
+
+        assertThrows(AssertionError.class, () -> tasks.restore(0, new Todo("restored")));
+        assertThrows(AssertionError.class, () -> tasks.restore(3, new Todo("restored")));
+        assertThrows(AssertionError.class, () -> tasks.restore(1, null));
+    }
+
+    @Test
     void get_outOfRangeNumber_throwsHelpfulError() {
         TaskList tasks = new TaskList(List.of(new Todo("only")));
 

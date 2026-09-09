@@ -74,6 +74,9 @@ public enum CommandType {
      * @throws OrbitException if the command word is unknown
      */
     public static CommandType fromInput(String input) throws OrbitException {
+        assert input != null : "Command input should not be null";
+        assert input.equals(input.trim()) && !input.isEmpty()
+                : "Command input should be trimmed and non-empty";
         for (CommandType commandType : values()) {
             if (commandType.matches(input)) {
                 return commandType;

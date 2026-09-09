@@ -84,6 +84,9 @@ public class TaskList {
      * @param task task to restore
      */
     public void restore(int taskNumber, Task task) {
+        assert task != null : "A restored task should not be null";
+        assert taskNumber >= 1 && taskNumber <= tasks.size() + 1
+                : "A restored task should return to a valid position";
         tasks.add(taskNumber - 1, task);
     }
 
