@@ -223,6 +223,70 @@ class ChatSessionTest {
         assertFalse(session.isExitRequested());
     }
 
+    @Test
+    void getResponse_sortChronologically_persistsOrderAndCompletionState() {
+        Path dataFile = getDataFile();
+        ChatSession session = new ChatSession(dataFile);
+        session.getResponse("todo undated first");
+        session.getResponse("deadline later /by 2026-09-09");
+        session.getResponse("event earliest /from 2026-09-02 /to 2026-09-03");
+        session.getResponse("deadline middle /by 2026-09-04");
+        session.getResponse("todo undated last");
+        session.getResponse("mark 2");
+
+        String sortResponse = session.getResponse("sort");
+        String sortedList = session.getResponse("list");
+
+        assertTrue(sortResponse.contains("Here are your tasks sorted chronologically:"));
+        assertTasksAreInChronologicalOrder(sortResponse);
+        assertTasksAreInChronologicalOrder(sortedList);
+        session.getResponse("bye");
+        ChatSession reopenedSession = new ChatSession(dataFile);
+        assertEquals(sortedList, reopenedSession.getResponse("list"));
+    }
+
+    @Test
+    void getResponse_invalidSortCommands_reportErrorsWithoutMutation() {
+        ChatSession session = new ChatSession(getDataFile());
+        session.getResponse("todo first");
+        session.getResponse("deadline second /by 2026-09-04");
+        String originalList = session.getResponse("list");
+
+        assertTrue(session.getResponse("sort date").contains("OOPS! I don't know that command."));
+        assertTrue(session.getResponse("sorter").contains("OOPS! I don't know that command."));
+        assertEquals(originalList, session.getResponse("list"));
+    }
+
+    @Test
+    void getResponse_sortSaveFailure_restoresOriginalOrder() throws IOException {
+        Path dataFile = getDataFile();
+        ChatSession session = new ChatSession(dataFile);
+        session.getResponse("todo first");
+        session.getResponse("deadline second /by 2026-09-04");
+        String originalList = session.getResponse("list");
+        replaceDataFileWithDirectory(dataFile);
+
+        String response = session.getResponse("sort");
+
+        assertTrue(response.contains("OOPS! Could not save tasks to"));
+        assertFalse(response.contains("sorted chronologically"));
+        assertEquals(originalList, session.getResponse("list"));
+        assertFalse(session.isExitRequested());
+    }
+
+    private void assertTasksAreInChronologicalOrder(String response) {
+        int eventPosition = response.indexOf("1.[E][ ] earliest");
+        int middlePosition = response.indexOf("2.[D][ ] middle");
+        int laterPosition = response.indexOf("3.[D][X] later");
+        int firstTodoPosition = response.indexOf("4.[T][ ] undated first");
+        int lastTodoPosition = response.indexOf("5.[T][ ] undated last");
+        assertTrue(eventPosition >= 0);
+        assertTrue(middlePosition > eventPosition);
+        assertTrue(laterPosition > middlePosition);
+        assertTrue(firstTodoPosition > laterPosition);
+        assertTrue(lastTodoPosition > firstTodoPosition);
+    }
+
     private Path getDataFile() {
         return temporaryDirectory.resolve("data").resolve("orbit.txt");
     }

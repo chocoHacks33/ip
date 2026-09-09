@@ -32,9 +32,14 @@ the same data file at once, because each session maintains its own in-memory lis
 | Mark / unmark | `mark 1` / `unmark 1` |
 | Delete | `delete 1` |
 | Search descriptions (case-sensitive) | `find CS2103` |
+| Sort dated tasks chronologically | `sort` |
 | Exit | `bye` |
 
-Dates must use `yyyy-MM-dd`. Task numbers refer to the full `list`, not the renumbered search results.
+Dates must use `yyyy-MM-dd`. The `sort` command orders deadlines by their due dates and events by
+their start dates; tasks on the same date keep their existing order, and undated todos come last.
+The sorted order is saved, so task numbers in later `mark` and `delete` commands use that order.
+The numbers shown by `find` are result positions only. Use numbers from the full `list` when running
+`mark`, `unmark`, or `delete`.
 
 ## Checking the code
 

@@ -66,4 +66,15 @@ class UiTest {
                 + numberedTasks;
         assertEquals(expected, output.toString(StandardCharsets.UTF_8));
     }
+
+    @Test
+    void showSortedTasks_numberedTasks_preservesExactOutput() {
+        ui.showSortedTasks(List.of(new Todo("first"), new Todo("second")));
+
+        String expected = "Here are your tasks sorted chronologically:"
+                + System.lineSeparator()
+                + "1.[T][ ] first" + System.lineSeparator()
+                + "2.[T][ ] second" + System.lineSeparator();
+        assertEquals(expected, output.toString(StandardCharsets.UTF_8));
+    }
 }

@@ -386,3 +386,52 @@ Here are the tasks in your list:
 4.[T][ ] read notes
 Bye. Hope to see you again soon!
 ```
+
+## TC11: Sort tasks chronologically and persist their order
+
+Aim: Verify sorting uses dates, preserves equal-date and todo order, rejects invalid syntax, and
+saves the new task numbers across restarts.
+
+### Input
+
+```text
+todo undated first
+deadline later /by 2026-09-09
+event earliest /from 2026-09-02 /to 2026-09-03
+deadline middle /by 2026-09-04
+todo undated last
+mark 2
+sort
+sort extra
+sorter
+bye
+```
+
+### Restart input 1
+
+```text
+list
+bye
+```
+
+### Expected output (ordered fragments)
+
+```text
+[D][X] later (by: Sep 9 2026)
+Here are your tasks sorted chronologically:
+1.[E][ ] earliest (from: Sep 2 2026 to: Sep 3 2026)
+2.[D][ ] middle (by: Sep 4 2026)
+3.[D][X] later (by: Sep 9 2026)
+4.[T][ ] undated first
+5.[T][ ] undated last
+OOPS! I don't know that command.
+OOPS! I don't know that command.
+Bye. Hope to see you again soon!
+Here are the tasks in your list:
+1.[E][ ] earliest (from: Sep 2 2026 to: Sep 3 2026)
+2.[D][ ] middle (by: Sep 4 2026)
+3.[D][X] later (by: Sep 9 2026)
+4.[T][ ] undated first
+5.[T][ ] undated last
+Bye. Hope to see you again soon!
+```

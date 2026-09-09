@@ -1,7 +1,9 @@
 package orbit.task;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import orbit.exception.OrbitException;
@@ -102,10 +104,43 @@ public class TaskList {
                 .toList();
     }
 
+    /**
+     * Sorts dated tasks chronologically while keeping undated tasks last.
+     * Tasks with the same date retain their relative order.
+     */
+    public void sortChronologically() {
+        Comparator<Task> chronologicalOrder = Comparator.comparing(
+                TaskList::getSortDate, Comparator.nullsLast(Comparator.naturalOrder()));
+        tasks.sort(chronologicalOrder);
+    }
+
+    /**
+     * Restores a previously captured ordering of this task list.
+     *
+     * @param previousOrder tasks in their order before a failed change
+     */
+    public void restoreOrder(List<Task> previousOrder) {
+        assert previousOrder != null : "A previous task order should not be null";
+        assert previousOrder.size() == tasks.size()
+                : "A restored order should contain the same number of tasks";
+        tasks.clear();
+        tasks.addAll(previousOrder);
+    }
+
     private int toIndex(int taskNumber) throws OrbitException {
         if (taskNumber < 1 || taskNumber > tasks.size()) {
             throw new OrbitException("Task number " + taskNumber + " is out of range.");
         }
         return taskNumber - 1;
+    }
+
+    private static LocalDate getSortDate(Task task) {
+        if (task instanceof Deadline deadline) {
+            return deadline.getBy();
+        }
+        if (task instanceof Event event) {
+            return event.getFrom();
+        }
+        return null;
     }
 }

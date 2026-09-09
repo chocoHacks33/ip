@@ -78,4 +78,17 @@ class ParserTest {
 
         assertEquals("I don't know that command.", exception.getMessage());
     }
+
+    @Test
+    void parse_sortCommand_acceptsOnlyExactCommandWithoutArguments() throws OrbitException {
+        ParsedCommand command = parser.parse("sort");
+
+        assertEquals(CommandType.SORT, command.getType());
+        OrbitException argumentError = assertThrows(OrbitException.class, () ->
+                parser.parse("sort date"));
+        OrbitException nearMissError = assertThrows(OrbitException.class, () ->
+                parser.parse("sorter"));
+        assertEquals("I don't know that command.", argumentError.getMessage());
+        assertEquals("I don't know that command.", nearMissError.getMessage());
+    }
 }
