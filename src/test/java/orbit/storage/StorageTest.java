@@ -77,6 +77,21 @@ class StorageTest {
         assertEquals("The data file is invalid at line 1.", exception.getMessage());
     }
 
+    @Test
+    void load_eventWithInvalidDateRange_reportsCorruptLine() throws IOException {
+        Path dataFile = temporaryDirectory.resolve("orbit.txt");
+        String description = encode("broken event");
+        String from = encode("2026-09-03");
+        String to = encode("2026-09-02");
+        Files.writeString(dataFile, "E\t0\t" + description + "\t" + from + "\t" + to,
+                StandardCharsets.UTF_8);
+        Storage storage = new Storage(dataFile);
+
+        OrbitException exception = assertThrows(OrbitException.class, storage::load);
+
+        assertEquals("The data file is invalid at line 1.", exception.getMessage());
+    }
+
     private String encode(String value) {
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }

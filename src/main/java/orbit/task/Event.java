@@ -8,6 +8,10 @@ import java.util.Locale;
  * Represents a task that takes place between two dates.
  */
 public class Event extends Task {
+    /** Message used when an event does not have a meaningful date range. */
+    public static final String INVALID_DATE_RANGE_MESSAGE =
+            "The end date of an event must be after its start date.";
+
     private static final DateTimeFormatter DISPLAY_FORMAT =
             DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
 
@@ -35,6 +39,9 @@ public class Event extends Task {
      */
     public Event(String description, LocalDate from, LocalDate to, boolean isDone) {
         super(description, isDone);
+        if (!from.isBefore(to)) {
+            throw new IllegalArgumentException(INVALID_DATE_RANGE_MESSAGE);
+        }
         this.from = from;
         this.to = to;
     }

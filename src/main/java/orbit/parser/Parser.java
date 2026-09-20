@@ -130,7 +130,13 @@ public class Parser {
         if (toText.isEmpty()) {
             throw new OrbitException("The end of an event cannot be empty.");
         }
-        return new Event(description, parseDate(fromText), parseDate(toText));
+        LocalDate from = parseDate(fromText);
+        LocalDate to = parseDate(toText);
+        try {
+            return new Event(description, from, to);
+        } catch (IllegalArgumentException exception) {
+            throw new OrbitException(exception.getMessage());
+        }
     }
 
     private LocalDate parseDate(String value) throws OrbitException {
