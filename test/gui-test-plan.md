@@ -7,8 +7,8 @@ All test data belongs in fresh temporary directories, never the user's data fold
 1. Launch the FXML view. Check greeting, command field, Send button, and distinguishable speakers.
 2. Add a todo using Enter, then list using Send. Both handlers must echo the command, show the
    actual response, and clear the field. Only one command must execute per action.
-3. Submit blank/invalid commands and malformed dates. Errors must be readable in the conversation;
-   valid commands afterward must still work.
+3. Submit blank/invalid commands, malformed dates, and event ranges whose end is not after the
+   start. Errors must be readable in the conversation; valid commands afterward must still work.
 4. Add todos, deadlines and events, then mark, unmark, delete, find and sort. Verify the same results
    as the command-line plan. Restart with the same temporary data file and verify saved state,
    including the sorted order.

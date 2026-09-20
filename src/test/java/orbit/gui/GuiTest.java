@@ -268,7 +268,7 @@ class GuiTest {
         });
         send("todo Read CS2103 notes", true);
         send("deadline Submit iP update /by 2026-09-04", false);
-        send("event CS2103 tutorial /from 2026-09-04 /to 2026-09-04", true);
+        send("event CS2103 tutorial /from 2026-09-04 /to 2026-09-05", true);
         send("mark 1", false);
         send("sort", false);
         send("list", true);

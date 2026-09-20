@@ -38,6 +38,17 @@ class ParserTest {
     }
 
     @Test
+    void parse_eventEndNotAfterStart_throwsHelpfulError() {
+        OrbitException sameDayException = assertThrows(OrbitException.class, () ->
+                parser.parse("event workshop /from 2026-09-02 /to 2026-09-02"));
+        OrbitException reversedException = assertThrows(OrbitException.class, () ->
+                parser.parse("event workshop /from 2026-09-03 /to 2026-09-02"));
+
+        assertEquals(Event.INVALID_DATE_RANGE_MESSAGE, sameDayException.getMessage());
+        assertEquals(Event.INVALID_DATE_RANGE_MESSAGE, reversedException.getMessage());
+    }
+
+    @Test
     void parse_impossibleDate_throwsHelpfulError() {
         OrbitException exception = assertThrows(OrbitException.class, () -> {
             parser.parse("deadline impossible /by 2026-02-29");

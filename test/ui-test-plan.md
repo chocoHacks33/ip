@@ -194,6 +194,8 @@ deadline do homework /by no idea :-p
 deadline impossible /by 2026-02-29
 event invalid start /from Monday /to 2026-09-02
 event invalid end /from 2026-09-01 /to Tuesday
+event same day /from 2026-09-02 /to 2026-09-02
+event backwards /from 2026-09-03 /to 2026-09-02
 deadline leap day /by 2028-02-29
 event release /from 2026-09-01 /to 2026-09-02
 list
@@ -207,6 +209,8 @@ OOPS! Please enter dates as yyyy-MM-dd.
 OOPS! Please enter dates as yyyy-MM-dd.
 OOPS! Please enter dates as yyyy-MM-dd.
 OOPS! Please enter dates as yyyy-MM-dd.
+OOPS! The end date of an event must be after its start date.
+OOPS! The end date of an event must be after its start date.
 [D][ ] leap day (by: Feb 29 2028)
 [E][ ] release (from: Sep 1 2026 to: Sep 2 2026)
 1.[D][ ] leap day (by: Feb 29 2028)

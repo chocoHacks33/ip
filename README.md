@@ -36,7 +36,8 @@ the same data file at once, because each session maintains its own in-memory lis
 | Exit | `bye` |
 
 Dates must use `yyyy-MM-dd`. The `sort` command orders deadlines by their due dates and events by
-their start dates; tasks on the same date keep their existing order, and undated todos come last.
+their start dates. An event's end date must be after its start date. Tasks on the same date keep
+their existing order, and undated todos come last.
 The sorted order is saved, so task numbers in later `mark` and `delete` commands use that order.
 The numbers shown by `find` are result positions only. Use numbers from the full `list` when running
 `mark`, `unmark`, or `delete`.
