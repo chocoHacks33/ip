@@ -38,9 +38,9 @@
                            onAction="#handleUserInput" HBox.hgrow="ALWAYS"
                            accessibleText="Command" />
                 <Button fx:id="sendButton" text="Send" onAction="#handleUserInput"
-                        mnemonicParsing="false" prefWidth="82.0" />
+                        mnemonicParsing="false" prefWidth="82.0" accessibleText="Send command" />
             </HBox>
-            <Label text="todo · deadline · event · list · find · mark · unmark · delete · bye"
+            <Label text="todo · deadline · event · list · find · sort · mark · unmark · delete · bye"
                    wrapText="true" styleClass="hint" />
             <Label text="Dates: yyyy-MM-dd   •   Changes save automatically on success."
                    wrapText="true" styleClass="hint" />

@@ -157,6 +157,12 @@ class GuiTest {
         onFx(() -> {
             assertEquals(initialCount + 2, dialogContainer.getChildren().size());
             assertTrue(lastMessage().contains("OOPS! I don't know that command."));
+            Node errorBox = dialogContainer.getChildren().getLast();
+            Label errorAvatar = (Label) errorBox.lookup("#avatar");
+            assertTrue(errorBox.getStyleClass().contains("error-dialog"));
+            assertEquals("!", errorAvatar.getText());
+            assertEquals("Orbit error", errorAvatar.getAccessibleText());
+            assertEquals("Send command", sendButton.getAccessibleText());
             return null;
         });
 
