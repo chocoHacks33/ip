@@ -38,6 +38,8 @@ public class DialogBox extends HBox {
             setAlignment(Pos.TOP_LEFT);
             getChildren().setAll(avatar, dialog);
             if (message.startsWith("OOPS!")) {
+                avatar.setText("!");
+                avatar.setAccessibleText("Orbit error");
                 getStyleClass().add("error-dialog");
             }
         }

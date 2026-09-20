@@ -56,6 +56,10 @@
     -fx-border-color: #efc8a3;
     -fx-text-fill: #804321;
 }
+.error-dialog .avatar {
+    -fx-background-color: #a54f2b;
+    -fx-text-fill: white;
+}
 .composer {
     -fx-padding: 18 24 20;
     -fx-background-color: white;
