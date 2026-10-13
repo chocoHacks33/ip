@@ -153,55 +153,11 @@ class GuiTest {
     @Test
     void submit_invalidAndBlankCommands_recoversWithoutEmptyUserBubble() throws Exception {
         int initialCount = onFx(() -> dialogContainer.getChildren().size());
-        send("unknown-command", true);
-        onFx(() -> {
-            assertEquals(initialCount + 2, dialogContainer.getChildren().size());
-            assertTrue(lastMessage().contains("OOPS! I don't know that command."));
-            Node errorBox = dialogContainer.getChildren().getLast();
-            Label errorAvatar = (Label) errorBox.lookup("#avatar");
-            assertTrue(errorBox.getStyleClass().contains("error-dialog"));
-            assertEquals("!", errorAvatar.getText());
-            assertEquals("Orbit error", errorAvatar.getAccessibleText());
-            assertEquals("Send command", sendButton.getAccessibleText());
-            return null;
-        });
-
-        send("   ", false);
-        onFx(() -> {
-            assertEquals(initialCount + 3, dialogContainer.getChildren().size());
-            assertTrue(lastMessage().contains("OOPS! Please enter a command."));
-            assertEquals("", userInput.getText());
-            assertSame(userInput, stage.getScene().getFocusOwner());
-            assertFalse(sendButton.isDisabled());
-            return null;
-        });
-
-        send("deadline invalid date /by 2026-02-29", true);
-        onFx(() -> {
-            assertEquals(initialCount + 5, dialogContainer.getChildren().size());
-            assertTrue(lastMessage().contains("OOPS! Please enter dates as yyyy-MM-dd."));
-            assertEquals("", userInput.getText());
-            return null;
-        });
-
-        send("bye now", false);
-        onFx(() -> {
-            assertEquals(initialCount + 7, dialogContainer.getChildren().size());
-            assertTrue(lastMessage().contains("OOPS! I don't know that command."));
-            assertFalse(userInput.isDisabled());
-            assertFalse(sendButton.isDisabled());
-            assertEquals(0, exitRequests.get());
-            return null;
-        });
-
-        send("todo recovered", false);
-        send("list", true);
-        onFx(() -> {
-            assertEquals(initialCount + 11, dialogContainer.getChildren().size());
-            assertTrue(lastMessage().contains("1.[T][ ] recovered"));
-            assertEquals(0, exitRequests.get());
-            return null;
-        });
+        submitUnknownCommandAndAssertAccessibleError(initialCount + 2);
+        submitBlankCommandAndAssertRecovery(initialCount + 3);
+        submitInvalidDateAndAssertError(initialCount + 5);
+        submitByeWithArgumentsAndAssertRejected(initialCount + 7);
+        submitValidCommandsAndAssertRecovery(initialCount + 11);
     }
 
     @Test
@@ -220,49 +176,14 @@ class GuiTest {
     void layout_longConversationAndResize_wrapsMessagesAndScrollsToLatest() throws Exception {
         String longDescription = "Review the GUI layout with a detailed task description and several useful notes. "
                 .repeat(10).strip();
-        onFx(() -> {
-            for (int i = 1; i <= 12; i++) {
-                userInput.setText("todo Task " + i);
-                sendButton.fire();
-            }
-            userInput.setText("todo " + longDescription);
-            sendButton.fire();
-            return null;
-        });
+        populateLongConversation(longDescription);
         awaitLayout();
         double wideHeight = onFx(() -> lastDialog().getHeight());
         double wideSceneWidth = onFx(() -> stage.getScene().getWidth());
 
-        onFx(() -> {
-            stage.setWidth(480);
-            stage.setHeight(440);
-            return null;
-        });
+        resizeWindow(480, 440);
         awaitLayout();
-        onFx(() -> {
-            assertTrue(stage.getScene().getWidth() < wideSceneWidth);
-            assertTrue(lastDialog().getHeight() > wideHeight, "Narrower bubbles should wrap onto more lines.");
-            assertTrue(dialogContainer.getHeight() > scrollPane.getViewportBounds().getHeight());
-            assertEquals(scrollPane.getVmax(), scrollPane.getVvalue(), 0.01,
-                    "The latest response should remain at the bottom of the conversation.");
-
-            Node viewport = scrollPane.lookup(".viewport");
-            assertNotNull(viewport);
-            Bounds viewportBounds = viewport.localToScene(viewport.getBoundsInLocal());
-            for (Node message : dialogContainer.getChildren()) {
-                Label dialog = (Label) message.lookup("#dialog");
-                Label avatar = (Label) message.lookup("#avatar");
-                assertNotNull(dialog);
-                assertNotNull(avatar);
-                assertTrue(dialog.isWrapText());
-                Bounds dialogBounds = dialog.localToScene(dialog.getBoundsInLocal());
-                assertTrue(dialogBounds.getMinX() >= viewportBounds.getMinX() - 1,
-                        "A message must not overflow the viewport's left edge.");
-                assertTrue(dialogBounds.getMaxX() <= viewportBounds.getMaxX() + 1,
-                        "A message must not overflow the viewport's right edge.");
-            }
-            return null;
-        });
+        assertNarrowLayout(wideHeight, wideSceneWidth);
     }
 
     @Test
@@ -296,6 +217,150 @@ class GuiTest {
         assertTrue(ImageIO.write(image, "png", screenshot.toFile()));
         assertTrue(width > 600 && height > 500, "Capture the shown scene at a readable size.");
         assertTrue(Files.size(screenshot) > 10_000, "The rendered conversation should produce a nonempty PNG.");
+    }
+
+    /**
+     * Submits an unknown command and verifies the accessible error presentation.
+     */
+    private void submitUnknownCommandAndAssertAccessibleError(int expectedDialogCount) throws Exception {
+        send("unknown-command", true);
+        onFx(() -> {
+            assertEquals(expectedDialogCount, dialogContainer.getChildren().size());
+            assertTrue(lastMessage().contains("OOPS! I don't know that command."));
+            Node errorBox = dialogContainer.getChildren().getLast();
+            Label errorAvatar = (Label) errorBox.lookup("#avatar");
+            assertTrue(errorBox.getStyleClass().contains("error-dialog"));
+            assertEquals("!", errorAvatar.getText());
+            assertEquals("Orbit error", errorAvatar.getAccessibleText());
+            assertEquals("Send command", sendButton.getAccessibleText());
+            return null;
+        });
+    }
+
+    /**
+     * Submits blank input and verifies that the controls remain ready for another command.
+     */
+    private void submitBlankCommandAndAssertRecovery(int expectedDialogCount) throws Exception {
+        send("   ", false);
+        onFx(() -> {
+            assertEquals(expectedDialogCount, dialogContainer.getChildren().size());
+            assertTrue(lastMessage().contains("OOPS! Please enter a command."));
+            assertEquals("", userInput.getText());
+            assertSame(userInput, stage.getScene().getFocusOwner());
+            assertFalse(sendButton.isDisabled());
+            return null;
+        });
+    }
+
+    /**
+     * Submits an impossible date and verifies that it is rejected without retaining input.
+     */
+    private void submitInvalidDateAndAssertError(int expectedDialogCount) throws Exception {
+        send("deadline invalid date /by 2026-02-29", true);
+        onFx(() -> {
+            assertEquals(expectedDialogCount, dialogContainer.getChildren().size());
+            assertTrue(lastMessage().contains("OOPS! Please enter dates as yyyy-MM-dd."));
+            assertEquals("", userInput.getText());
+            return null;
+        });
+    }
+
+    /**
+     * Submits an invalid bye command and verifies that it does not disable or exit the GUI.
+     */
+    private void submitByeWithArgumentsAndAssertRejected(int expectedDialogCount) throws Exception {
+        send("bye now", false);
+        onFx(() -> {
+            assertEquals(expectedDialogCount, dialogContainer.getChildren().size());
+            assertTrue(lastMessage().contains("OOPS! I don't know that command."));
+            assertFalse(userInput.isDisabled());
+            assertFalse(sendButton.isDisabled());
+            assertEquals(0, exitRequests.get());
+            return null;
+        });
+    }
+
+    /**
+     * Verifies that valid commands still work after the preceding invalid submissions.
+     */
+    private void submitValidCommandsAndAssertRecovery(int expectedDialogCount) throws Exception {
+        send("todo recovered", false);
+        send("list", true);
+        onFx(() -> {
+            assertEquals(expectedDialogCount, dialogContainer.getChildren().size());
+            assertTrue(lastMessage().contains("1.[T][ ] recovered"));
+            assertEquals(0, exitRequests.get());
+            return null;
+        });
+    }
+
+    /**
+     * Populates the conversation in one JavaFX pulse so that wrapping can be tested after layout.
+     */
+    private void populateLongConversation(String longDescription) throws Exception {
+        onFx(() -> {
+            for (int i = 1; i <= 12; i++) {
+                userInput.setText("todo Task " + i);
+                sendButton.fire();
+            }
+            userInput.setText("todo " + longDescription);
+            sendButton.fire();
+            return null;
+        });
+    }
+
+    /**
+     * Resizes the stage on the JavaFX application thread.
+     */
+    private void resizeWindow(double width, double height) throws Exception {
+        onFx(() -> {
+            stage.setWidth(width);
+            stage.setHeight(height);
+            return null;
+        });
+    }
+
+    /**
+     * Verifies wrapping, scrolling, and message bounds after the window becomes narrower.
+     */
+    private void assertNarrowLayout(double wideHeight, double wideSceneWidth) throws Exception {
+        onFx(() -> {
+            assertTrue(stage.getScene().getWidth() < wideSceneWidth);
+            assertTrue(lastDialog().getHeight() > wideHeight, "Narrower bubbles should wrap onto more lines.");
+            assertTrue(dialogContainer.getHeight() > scrollPane.getViewportBounds().getHeight());
+            assertEquals(scrollPane.getVmax(), scrollPane.getVvalue(), 0.01,
+                    "The latest response should remain at the bottom of the conversation.");
+            assertAllMessagesWrapWithinViewport();
+            return null;
+        });
+    }
+
+    /**
+     * Checks every rendered message against the current viewport bounds.
+     */
+    private void assertAllMessagesWrapWithinViewport() {
+        Node viewport = scrollPane.lookup(".viewport");
+        assertNotNull(viewport);
+        Bounds viewportBounds = viewport.localToScene(viewport.getBoundsInLocal());
+        for (Node message : dialogContainer.getChildren()) {
+            assertMessageWrapsWithinViewport(message, viewportBounds);
+        }
+    }
+
+    /**
+     * Checks one rendered message for required nodes, wrapping, and horizontal containment.
+     */
+    private static void assertMessageWrapsWithinViewport(Node message, Bounds viewportBounds) {
+        Label dialog = (Label) message.lookup("#dialog");
+        Label avatar = (Label) message.lookup("#avatar");
+        assertNotNull(dialog);
+        assertNotNull(avatar);
+        assertTrue(dialog.isWrapText());
+        Bounds dialogBounds = dialog.localToScene(dialog.getBoundsInLocal());
+        assertTrue(dialogBounds.getMinX() >= viewportBounds.getMinX() - 1,
+                "A message must not overflow the viewport's left edge.");
+        assertTrue(dialogBounds.getMaxX() <= viewportBounds.getMaxX() + 1,
+                "A message must not overflow the viewport's right edge.");
     }
 
     /**
